@@ -4,6 +4,13 @@
 
 (To be filled in)
 
+## Installation 
+```
+* `git clone https://github.com/your-username/ARICE.git`
+to be filled up
+```
+
+
 ## Architecture Review (Project File Structure)
 
 The project is a monorepo with a client-server architecture, organized into three main directories:
@@ -46,13 +53,14 @@ The project is a monorepo with a client-server architecture, organized into thre
 
 ## Git Flow Integration
 
-This project uses a feature-based branching strategy to keep the `main` branch clean and deployable at all times.
+This project uses a feature-based branching strategy to keep the `develop` branch clean and deployable at all times.
+
 
 ### Branch Structure
 
 *   **`main`**: The primary branch representing the latest stable, production-ready code.
-*   **`develop`**: An integration branch where features are merged before being released to `main`.
-*   **`feat/<feature-name>`**: Branches for developing new features. Branched from `develop` and merged back into `develop` via a pull request.
+*   **`develop`**: An integration branch where features are merged before being released to `develop`.
+*   **`feat/<feature-name>`**: Branches for developing new features. Branched from `feature/<your-branch>` and merged back into `develop` via a pull request.
 *   **`fix/<issue-name>`**: Branches for bug fixes. Branched from `develop` and merged back.
 *   **`docs/<topic-name>`**: Branches for writing documentation.
 
@@ -68,6 +76,22 @@ We follow the **Conventional Commits** specification to create an explicit commi
 *   **refactor**: A code change that neither fixes a bug nor adds a feature.
 
 Example: `feat: add user authentication endpoint`
+
+### Pull Request Workflow
+When following the pull request workflow, the pull request should be created from the `feature/<your-branch>` branch to the `develop` branch.
+
+**Example Pull Request**
+```
+## Description 
+    This PR includes adding a new feature to frontend 
+
+## Summary of Changes 
+ - added new feature to frontend
+
+## Screenshot of changes
+ <Picture>
+
+```
 
 ## Docs
 
