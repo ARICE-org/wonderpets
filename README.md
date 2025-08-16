@@ -4,11 +4,33 @@
 
 (To be filled in)
 
-## Installation 
+## Installation
+
+```bash
+git clone https://github.com/your-username/ARICE.git
+cd ARICE
 ```
-* `git clone https://github.com/your-username/ARICE.git`
-to be filled up
-```
+
+## Docker
+
+This project is fully containerized using Docker. To build and run the application, you'll need to have Docker and Docker Compose installed.
+
+1.  **Build and run the services:**
+
+    ```bash
+    docker-compose up --build
+    ```
+
+2.  **Access the services:**
+
+    *   **Backend API:** [http://localhost:8000](http://localhost:8000)
+    *   **Frontend Web:** [http://localhost:8081](http://localhost:8081)
+
+3.  **To stop the services:**
+
+    ```bash
+    docker-compose down
+    ```
 
 
 ## Architecture Review (Project File Structure)
