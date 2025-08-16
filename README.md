@@ -37,12 +37,12 @@ The project is a monorepo with a client-server architecture, organized into thre
 |   `-- package.json # NPM dependencies and scripts
 |
 |-- scripts/         # PowerShell scripts for managing the dev environment
-|   |-- dev.ps1      # Starts both backend and frontend servers
-|   |-- stop-dev.ps1 # Stops all development processes
-|   |-- run-backend.ps1 # Runs only the backend server
-|   `-- run-frontend.ps1 # Runs only the frontend server
-|
-`-- README.md        # This file
+    |-- dev.ps1      # Starts both backend and frontend servers
+    |-- stop-dev.ps1 # Stops all development processes
+    |-- run-backend.ps1 # Runs only the backend server
+    `-- run-frontend.ps1 # Runs only the frontend server
+
+
 ```
 
 ## Key Features
@@ -89,7 +89,7 @@ When following the pull request workflow, the pull request should be created fro
  - added new feature to frontend
 
 ## Screenshot of changes
- <Picture>
+ - <Picture>
 
 ```
 
