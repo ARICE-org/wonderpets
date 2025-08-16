@@ -66,7 +66,7 @@ function Stop-ByCommandLine {
 Write-Host "Stopping dev environment (backend + frontend)..." -ForegroundColor Cyan
 
 # Common dev ports
-$ports = @(8000, 8081, 19000, 19001, 19002)
+$ports = @(8000, 8081)
 foreach ($p in $ports) { Stop-ByPort -Port $p }
 
 # Match backend uvicorn and frontend expo processes by command line
