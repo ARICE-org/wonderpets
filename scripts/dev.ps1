@@ -4,6 +4,25 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Test-Prerequisites {
+    Write-Host "Checking for prerequisites..." -ForegroundColor Cyan
+    $pythonExists = Get-Command py -ErrorAction SilentlyContinue
+    if (-not $pythonExists) {
+        Write-Host "ERROR: Python ('py' command) not found in your PATH." -ForegroundColor Red
+        Write-Host "Please install Python from https://www.python.org/downloads/ and ensure it is added to your PATH." -ForegroundColor Yellow
+        exit 1
+    }
+
+    $npmExists = Get-Command npm -ErrorAction SilentlyContinue
+    if (-not $npmExists) {
+        Write-Host "ERROR: npm command not found in your PATH." -ForegroundColor Red
+        Write-Host "Please install Node.js (which includes npm) from https://nodejs.org/ and ensure it is added to your PATH." -ForegroundColor Yellow
+        exit 1
+    }
+    Write-Host "Prerequisites check passed."
+}
+
+
 function Ensure-Backend-Venv {
     $backendAppPath = Join-Path (Join-Path (Join-Path $PSScriptRoot '..') 'backend') 'app'
     $venvPath = Join-Path $backendAppPath '.venv'
@@ -50,6 +69,7 @@ function Start-Frontend {
 }
 
 # Run
+Test-Prerequisites
 Ensure-Backend-Venv
 Ensure-Frontend-Deps
 Start-Backend

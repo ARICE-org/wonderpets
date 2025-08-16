@@ -4,11 +4,33 @@
 
 (To be filled in)
 
-## Installation 
+## Installation
+
+```bash
+git clone https://github.com/your-username/ARICE.git
+cd ARICE
 ```
-* `git clone https://github.com/your-username/ARICE.git`
-to be filled up
-```
+
+## Docker
+
+This project is fully containerized using Docker. To build and run the application, you'll need to have Docker and Docker Compose installed.
+
+1.  **Build and run the services:**
+
+    ```bash
+    docker-compose up --build
+    ```
+
+2.  **Access the services:**
+
+    *   **Backend API:** [http://localhost:8000](http://localhost:8000)
+    *   **Frontend Web:** [http://localhost:8081](http://localhost:8081)
+
+3.  **To stop the services:**
+
+    ```bash
+    docker-compose down
+    ```
 
 
 ## Architecture Review (Project File Structure)
@@ -37,12 +59,12 @@ The project is a monorepo with a client-server architecture, organized into thre
 |   `-- package.json # NPM dependencies and scripts
 |
 |-- scripts/         # PowerShell scripts for managing the dev environment
-|   |-- dev.ps1      # Starts both backend and frontend servers
-|   |-- stop-dev.ps1 # Stops all development processes
-|   |-- run-backend.ps1 # Runs only the backend server
-|   `-- run-frontend.ps1 # Runs only the frontend server
-|
-`-- README.md        # This file
+    |-- dev.ps1      # Starts both backend and frontend servers
+    |-- stop-dev.ps1 # Stops all development processes
+    |-- run-backend.ps1 # Runs only the backend server
+    `-- run-frontend.ps1 # Runs only the frontend server
+
+
 ```
 
 ## Key Features
@@ -89,7 +111,7 @@ When following the pull request workflow, the pull request should be created fro
  - added new feature to frontend
 
 ## Screenshot of changes
- <Picture>
+ - <Picture>
 
 ```
 
