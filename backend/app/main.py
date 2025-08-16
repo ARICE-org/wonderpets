@@ -14,14 +14,14 @@ tags_metadata = [
     },
     {
         "name": "users",
-        "description": "CRUD operations for users.",
+        "description": "Endpoints for user operations.",
     },
 ]
 
 app = FastAPI(
-    title="WonderPets API",
-    description="REST API for the WonderPets backend. Swagger UI is available at /docs and ReDoc at /redoc.",
-    version="0.1.0",
+    title="ARICE API",
+    description="REST API for the ARICE backend. Swagger UI is available at /docs and ReDoc at /redoc.",
+    version="0.0.1",
     openapi_tags=tags_metadata,
     docs_url="/docs",
     redoc_url="/redoc",

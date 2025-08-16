@@ -27,7 +27,7 @@ function Start-Backend {
     $activate = Join-Path (Join-Path (Join-Path $backendAppPath '.venv') 'Scripts') 'Activate.ps1'
     $cmd = "& '$activate'; Set-Location '$backendPath'; uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir 'app' --reload-include '*.py' --reload-exclude '*.db' --reload-exclude '.venv/*'"
     Write-Host "[backend] Starting uvicorn at http://localhost:8000" -ForegroundColor Green
-    Start-Process -FilePath "powershell" -ArgumentList "-NoExit","-ExecutionPolicy","Bypass","-Command", $cmd | Out-Null
+    Start-Process -FilePath "powershell" -ArgumentList "-ExecutionPolicy","Bypass","-Command", $cmd | Out-Null
 }
 
 function Ensure-Frontend-Deps {
@@ -46,7 +46,7 @@ function Start-Frontend {
     $frontendPath = Join-Path (Join-Path $PSScriptRoot '..') 'frontend'
     $cmd = "Set-Location '$frontendPath'; npx expo start"
     Write-Host "[frontend] Starting Expo (press 'w' in that window to open web, or scan QR for device)" -ForegroundColor Green
-    Start-Process -FilePath "powershell" -ArgumentList "-NoExit","-ExecutionPolicy","Bypass","-Command", $cmd | Out-Null
+    Start-Process -FilePath "powershell" -ArgumentList "-ExecutionPolicy","Bypass","-Command", $cmd | Out-Null
 }
 
 # Run
