@@ -17,4 +17,4 @@ if (Test-Path $req) {
 }
 
 Write-Host "[backend] Starting uvicorn at http://localhost:8000" -ForegroundColor Green
-& powershell -NoProfile -ExecutionPolicy Bypass -Command "& '$activate'; Set-Location '$backendPath'; uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+& powershell -NoProfile -ExecutionPolicy Bypass -Command "& '$activate'; Set-Location '$backendPath'; uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir 'app' --reload-include '*.py' --reload-exclude '*.db' --reload-exclude '.venv/*'"

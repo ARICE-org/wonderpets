@@ -3,9 +3,30 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings
 from app.routers.ping import router as ping_router
+from app.routers.users import router as users_router
 from app.db import Base, engine
 
-app = FastAPI()
+# OpenAPI/Swagger configuration
+tags_metadata = [
+    {
+        "name": "health",
+        "description": "Endpoints for health checks and service liveness.",
+    },
+    {
+        "name": "users",
+        "description": "CRUD operations for users.",
+    },
+]
+
+app = FastAPI(
+    title="WonderPets API",
+    description="REST API for the WonderPets backend. Swagger UI is available at /docs and ReDoc at /redoc.",
+    version="0.1.0",
+    openapi_tags=tags_metadata,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
 
 # CORS configuration
 if settings.CORS_ORIGINS:
@@ -33,3 +54,4 @@ def read_root():
 
 # Routers
 app.include_router(ping_router)
+app.include_router(users_router)

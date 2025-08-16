@@ -25,7 +25,7 @@ function Start-Backend {
     $backendPath = Join-Path (Join-Path $PSScriptRoot '..') 'backend'
     $backendAppPath = Join-Path (Join-Path (Join-Path $PSScriptRoot '..') 'backend') 'app'
     $activate = Join-Path (Join-Path (Join-Path $backendAppPath '.venv') 'Scripts') 'Activate.ps1'
-    $cmd = "& '$activate'; Set-Location '$backendPath'; uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    $cmd = "& '$activate'; Set-Location '$backendPath'; uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir 'app' --reload-include '*.py' --reload-exclude '*.db' --reload-exclude '.venv/*'"
     Write-Host "[backend] Starting uvicorn at http://localhost:8000" -ForegroundColor Green
     Start-Process -FilePath "powershell" -ArgumentList "-NoExit","-ExecutionPolicy","Bypass","-Command", $cmd | Out-Null
 }
