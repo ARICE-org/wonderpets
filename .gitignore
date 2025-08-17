@@ -4,6 +4,7 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+*.code-workspace
 
 # Python
 __pycache__/
