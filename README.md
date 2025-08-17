@@ -7,7 +7,7 @@
 ## Installation
 
 ```bash
-git clone https://github.com/your-username/ARICE.git
+git clone https://github.com/Markrodriguez1105/wonderpets.git
 cd ARICE
 ```
 
