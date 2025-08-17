@@ -36,22 +36,22 @@ This project is fully containerized using Docker. To build and run the applicati
 
 **Running both frontend and backend environments**
 
-    ```bash
+    ``` bash
     ./scripts/dev.ps1
     ```
 **Running both frontend environments using scripts**
 
-    ```bash
+    ``` bash
     ./scripts/run-frontend.ps1
     ```
 **Running both backend environments using scripts**
 
-    ```bash
+    ``` bash
     ./scripts/run-backend.ps1
     ```
 **Stoping both backend environments using scripts**
 
-    ```bash
+    ``` bash
     ./scripts/stop-dev.ps1
     ```
     
