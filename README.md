@@ -5,13 +5,13 @@
 (To be filled in)
 
 ## Installation
-
+### Cloning Project
 ```bash
 git clone https://github.com/Markrodriguez1105/wonderpets.git
 cd ARICE
 ```
 
-## Docker
+### Docker
 
 This project is fully containerized using Docker. To build and run the application, you'll need to have Docker and Docker Compose installed.
 
@@ -32,7 +32,29 @@ This project is fully containerized using Docker. To build and run the applicati
     docker-compose down
     ```
 
+### Running Scripts 
 
+**Running both frontend and backend environments**
+
+    ```bash
+    ./scripts/dev.ps1
+    ```
+**Running both frontend environments using scripts**
+
+    ```bash
+    ./scripts/run-frontend.ps1
+    ```
+**Running both backend environments using scripts**
+
+    ```bash
+    ./scripts/run-backend.ps1
+    ```
+**Stoping both backend environments using scripts**
+
+    ```bash
+    ./scripts/stop-dev.ps1
+    ```
+    
 ## Architecture Review (Project File Structure)
 
 The project is a monorepo with a client-server architecture, organized into three main directories:
@@ -105,7 +127,7 @@ When following the pull request workflow, the pull request should be created fro
 **Example Pull Request**
 ```
 ## Description 
-    This PR includes adding a new feature to frontend 
+    This PR includes adding a new feature to the frontend 
 
 ## Summary of Changes 
  - added new feature to frontend
