@@ -9,7 +9,7 @@ from app.db import Base, engine
 # OpenAPI/Swagger configuration
 tags_metadata = [
     {
-        "name": "health",
+        "name": "Haha",
         "description": "Endpoints for health checks and service liveness.",
     },
     {
@@ -54,4 +54,4 @@ def read_root():
 
 # Routers
 app.include_router(ping_router)
-# app.include_router(farmer_router)
+app.include_router(farmer_router)
