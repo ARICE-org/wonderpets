@@ -3,14 +3,28 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      postgre:
+        condition: service_started
+        restart: true
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app:/code/app
+      - ./backend/app:/code/app./backend/app:/code/app
+      - ./backend/alembic:/code/alembic
+      - ./backend/alembic.ini:/code/alembic.ini
+    develop:
+      watch:
+        - action: sync # live sync files into container
+          path: ./backend
+          target: /app
+        - action: rebuild
+          path: requirements.txt # trigger rebuild if deps change
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgre:5432/${POSTGRES_DB}
-    depends_on:
-      - postgre
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    env_file:
+      - ./.env
 
   # frontend:
   #   build:
@@ -34,7 +48,7 @@ services:
       - "5432:5432"
     volumes:
       - postgre_data:/var/lib/postgresql/data
-      - ./backend/db/init:/docker-entrypoint-initdb.d
+      # - ./backend/db/init:/docker-entrypoint-initdb.d
 
   pgadmin:
     image: dpage/pgadmin4
@@ -46,6 +60,9 @@ services:
       - "8080:80"
     depends_on:
       - postgre
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
 volumes:
   postgre_data:
+  pgadmin_data:

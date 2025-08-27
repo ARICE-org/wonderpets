@@ -1,22 +1,25 @@
-from pydantic import BaseModel
-import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
+from pathlib import Path
 
-# Load .env from the same directory or parent
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
-load_dotenv()  # fallback to cwd
+# Path to the root project folder (where .env lives)
+BASE_DIR = Path(__file__).resolve().parents[3]  # backend/app/config -> backend/app -> backend -> wonderpets
+ENV_FILE = BASE_DIR / ".env"
 
-class Settings(BaseModel):
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "appuser")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "apppassword")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "appdb")
-    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "db")
-    POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", "5432"))
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL",
-        # Default to local SQLite for dev without Docker; Docker will override with Postgres
-        "sqlite:///./app.db",
-    )
-    CORS_ORIGINS: str | None = os.getenv("CORS_ORIGINS")
+class Settings(BaseSettings):
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    CORS_ORIGINS: str
+
+    class Config:
+        env_file_encoding = "utf-8"  # optional
 
 settings = Settings()
+
+DATABASE_URL = (
+    f"postgresql+psycopg2://{settings.POSTGRES_USER}:"
+    f"{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:"
+    f"{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+)

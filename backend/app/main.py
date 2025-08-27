@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings
 from app.routers.ping import router as ping_router
-from app.routers.users import router as users_router
+from app.routers.farmer import router as farmer_router
 from app.db import Base, engine
 
 # OpenAPI/Swagger configuration
@@ -13,8 +13,8 @@ tags_metadata = [
         "description": "Endpoints for health checks and service liveness.",
     },
     {
-        "name": "users",
-        "description": "Endpoints for user operations.",
+        "name": "farmers",
+        "description": "Endpoints for farmer operations.",
     },
 ]
 
@@ -43,10 +43,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-def on_startup():
-    # Create tables if they do not exist
-    Base.metadata.create_all(bind=engine)
+# @app.on_event("startup")
+# def on_startup():
+#     # Create tables if they do not exist
+#     Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def read_root():
@@ -54,4 +54,4 @@ def read_root():
 
 # Routers
 app.include_router(ping_router)
-app.include_router(users_router)
+# app.include_router(farmer_router)

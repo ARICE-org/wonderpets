@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 # Base schema with API-friendly camelCase field aliases
-class UserBase(BaseModel):
+class FarmerBase(BaseModel):
     first_name: str = Field(..., alias="firstName")
     middle_name: Optional[str] = Field(None, alias="middleName")
     last_name: str = Field(..., alias="lastName")
@@ -15,11 +15,11 @@ class UserBase(BaseModel):
     }
 
 
-class UserCreate(UserBase):
+class FarmerCreate(FarmerBase):
     pass
 
 
-class UserUpdate(BaseModel):
+class FarmerUpdate(BaseModel):
     first_name: Optional[str] = Field(None, alias="firstName")
     middle_name: Optional[str] = Field(None, alias="middleName")
     last_name: Optional[str] = Field(None, alias="lastName")
@@ -31,7 +31,7 @@ class UserUpdate(BaseModel):
     }
 
 
-class UserInDB(UserBase):
+class FarmerInDB(FarmerBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -42,5 +42,5 @@ class UserInDB(UserBase):
     }
 
 
-class User(UserInDB):
+class Farmer(FarmerInDB):
     pass
