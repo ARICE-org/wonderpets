@@ -1,0 +1,37 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
+
+class VarietySuggestionBase(BaseModel):
+    rice_variety_id: str = Field(..., alias="riceVarietyId")
+    date_generated: datetime = Field(..., alias="dateGenerated")
+    feedback: bool = Field(..., alias="feedback")
+
+    model_config = {
+        "populate_by_name": True,
+    }
+
+class VarietySuggestionCreate(VarietySuggestionBase):
+    pass
+
+class VarietySuggestionUpdate(BaseModel):
+    rice_variety_id: Optional[str] = Field(None, alias="riceVarietyId")
+    date_generated: Optional[datetime] = Field(None, alias="dateGenerated")
+    feedback: Optional[bool] = Field(None, alias="feedback")
+
+    model_config = {
+        "populate_by_name": True,
+    }
+
+class VarietySuggestionInDB(VarietySuggestionBase):
+    variety_sugg_id: str = Field(..., alias="varietySuggId")
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True,
+    }
+
+class VarietySuggestion(VarietySuggestionInDB):
+    pass
