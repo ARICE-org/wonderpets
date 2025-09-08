@@ -6,7 +6,7 @@ from app.dependencies import get_db
 from app.models.farmer import Farmer as FarmerModel
 from app.schemas.farmer import FarmerBase, FarmerCreate, FarmerUpdate, Farmer
 
-router = APIRouter(prefix="/farmers", tags=["farmers"])
+router = APIRouter(prefix="/farmers", tags=["Farmers"])
 
 
 @router.get("/", response_model=List[FarmerBase])
