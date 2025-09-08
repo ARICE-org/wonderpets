@@ -12,8 +12,6 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/app:/code/app./backend/app:/code/app
-      - ./backend/alembic:/code/alembic
-      - ./backend/alembic.ini:/code/alembic.ini
     develop:
       watch:
         - action: sync # live sync files into container
