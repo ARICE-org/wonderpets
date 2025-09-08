@@ -5,15 +5,18 @@ from app.config.settings import settings
 from app.routers.ping import router as ping_router
 from app.routers.farmer import router as farmer_router
 from app.db import Base, engine
+import logging
+
+logger = logging.getLogger("uvicorn")
 
 # OpenAPI/Swagger configuration
 tags_metadata = [
     {
-        "name": "Haha",
+        "name": "Health",
         "description": "Endpoints for health checks and service liveness.",
     },
     {
-        "name": "farmers",
+        "name": "Farmers",
         "description": "Endpoints for farmer operations.",
     },
 ]
@@ -43,10 +46,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# @app.on_event("startup")
-# def on_startup():
-#     # Create tables if they do not exist
-#     Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+def on_startup():
+    # Create tables if they do not exist
+    Base.metadata.create_all(bind=engine)
+    logger.info("-------------------------------")
+    logger.info("✅ ARICE API is up and running! 🚀")
+    logger.info("📚 Swagger UI available at /docs")
+    logger.info("📘 ReDoc available at /redoc")
+    logger.info(f"Connected to: postgresql://{settings.POSTGRES_USER}:@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}")
+    logger.info("-------------------------------")
 
 @app.get("/")
 def read_root():
