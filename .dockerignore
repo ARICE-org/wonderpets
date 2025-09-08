@@ -1,32 +1,102 @@
-# Git
-.git
-.gitignore
-
-# Docker
-Dockerfile
-.dockerignore
-
-# IDEs and editors
-.idea
-.vscode
-*.swp
-
+# =====================================
 # Python
+# =====================================
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
-.Python
-.venv/
-env/
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
 
+# =====================================
 # Node
+# =====================================
 node_modules/
 npm-debug.log
 
-# Database
-app.db
+# =====================================
+# Virtual environments
+# =====================================
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# OS-specific
+# =====================================
+# IDE / Editor
+# =====================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =====================================
+# OS files
+# =====================================
 .DS_Store
 Thumbs.db
+
+# =====================================
+# Logs
+# =====================================
+*.log
+
+# =====================================
+# Testing / Coverage
+# =====================================
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# =====================================
+# FastAPI / Alembic / Database
+# =====================================
+alembic.ini
+alembic/
+migrations/
+*.db
+*.sqlite3
+
+# =====================================
+# Environment files
+# =====================================
+.env
+
+# =====================================
+# Docker
+# =====================================
+*.pid
+*.seed
+*.pid.lock
+docker-compose.override.yml
+
+# =====================================
+# Jupyter / Notebooks
+# =====================================
+.ipynb_checkpoints
+
+# =====================================
+# MyPy / Type Checking
+# =====================================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# =====================================
+# Pytest
+# =====================================
+.pytest_cache/
+
