@@ -32,7 +32,7 @@ class FarmerUpdate(BaseModel):
 
 
 class FarmerInDB(FarmerBase):
-    id: int
+    farmer_id: str = Field(..., alias="farmerId")
     created_at: datetime
     updated_at: Optional[datetime] = None
 
