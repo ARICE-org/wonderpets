@@ -1,9 +1,4 @@
 from pydantic_settings import BaseSettings
-from pathlib import Path
-
-# Path to the root project folder (where .env lives)
-BASE_DIR = Path(__file__).resolve().parents[3]  # backend/app/config -> backend/app -> backend -> wonderpets
-ENV_FILE = BASE_DIR / ".env"
 
 class Settings(BaseSettings):
     POSTGRES_USER: str
@@ -14,7 +9,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str
 
     class Config:
-        env_file_encoding = "utf-8"  # optional
+        env_file = "../.env"
+        extra = "ignore"  # ignore extra env vars
 
 settings = Settings()
 
