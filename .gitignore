@@ -82,9 +82,6 @@ coverage.xml
 # =====================================
 # FastAPI / Alembic / Database
 # =====================================
-alembic.ini
-alembic/
-migrations/
 *.db
 *.sqlite3
 
