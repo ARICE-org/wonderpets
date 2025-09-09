@@ -10,7 +10,6 @@ fake = Faker()
 def seed_farmers(session: Session, n=10):
     for _ in range(n):
         farmer = Farmer(
-            farmer_id=fake.uuid4()[:20],
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             address=fake.city(),

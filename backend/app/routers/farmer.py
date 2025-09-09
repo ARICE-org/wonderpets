@@ -9,7 +9,7 @@ from app.schemas.farmer import FarmerBase, FarmerCreate, FarmerUpdate, Farmer
 router = APIRouter(prefix="/farmers", tags=["Farmers"])
 
 
-@router.get("/", response_model=List[FarmerBase])
+@router.get("/", response_model=List[Farmer])
 def list_farmers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(FarmerModel).offset(skip).limit(limit).all()
 

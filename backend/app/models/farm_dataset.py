@@ -1,8 +1,5 @@
 from sqlalchemy import Column, String, TIMESTAMP, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from app.db import Base
-
-# Base = declarative_base()
 
 class FarmDataset(Base):
     __tablename__ = "farm_dataset"
