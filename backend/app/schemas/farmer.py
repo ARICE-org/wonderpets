@@ -1,13 +1,14 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 # Base schema with API-friendly camelCase field aliases
 class FarmerBase(BaseModel):
     first_name: str = Field(..., alias="firstName")
     middle_name: Optional[str] = Field(None, alias="middleName")
     last_name: str = Field(..., alias="lastName")
-    address: str = Field("pacol,nagacity")
+    address: str = Field(..., alias="address")
     phone_number: str = Field(..., alias="phoneNumber")
 
     model_config = {
@@ -32,7 +33,7 @@ class FarmerUpdate(BaseModel):
 
 
 class FarmerInDB(FarmerBase):
-    farmer_id: str = Field(..., alias="farmerId")
+    farmer_id: UUID = Field(..., alias="farmerId")
     created_at: datetime
     updated_at: Optional[datetime] = None
 
