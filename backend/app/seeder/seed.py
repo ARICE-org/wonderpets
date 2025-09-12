@@ -1,22 +1,37 @@
+import uuid
+
 from sqlalchemy.orm import Session
 from app.db import SessionLocal, engine
 from app.models import *
 from faker import Faker
-from datetime import datetime, date, timedelta
 import random
 
 fake = Faker()
 
-def seed_farmers(session: Session, n=10):
+def seed_users(session: Session, n=10):
     for _ in range(n):
+        gen_uuid = uuid.uuid4()
+
+        user = User(
+            uuid=gen_uuid,
+            email=fake.email(),
+            hashed_password=fake.password(length=16, special_chars=True, digits=False, upper_case=True, lower_case=False),
+        )
+        session.add(user)
+        session.commit()
+
         farmer = Farmer(
+            farmer_id=gen_uuid,
             first_name=fake.first_name(),
             last_name=fake.last_name(),
-            address=fake.city(),
+            address="Pacol, Naga City",
             phone_number=fake.phone_number()
         )
+
         session.add(farmer)
-    session.commit()
+        session.commit()
+
+    print("Seeding Users/Farmers")
 
 def seed_seasons(session: Session, n=4):
     for i in range(n):
@@ -24,8 +39,9 @@ def seed_seasons(session: Session, n=4):
             season_id=f"season{i+1}",
             name=fake.word().capitalize()
         )
-        session.add(season)
+        session.merge(season)
     session.commit()
+    print("Seeding Seasons")
 
 def seed_rice_varieties(session: Session, n=10):
     season_ids = [s.season_id for s in session.query(Season).all()]
@@ -37,8 +53,9 @@ def seed_rice_varieties(session: Session, n=10):
             growth_duration=random.randint(90, 150),
             color=random.choice(["white", "brown", "red", "black"])
         )
-        session.add(rice)
+        session.merge(rice)
     session.commit()
+    print("Seeding Rice Varieties")
 
 def seed_weather_data(session: Session, n=10):
     for _ in range(n):
@@ -52,8 +69,9 @@ def seed_weather_data(session: Session, n=10):
             wind_speed=round(random.uniform(0, 20), 2),
             wind_direct=random.choice(["N", "S", "E", "W"])
         )
-        session.add(weather)
+        session.merge(weather)
     session.commit()
+    print("Seeding Weather Data")
 
 def seed_farm_dataset(session: Session, n=10):
     rice_ids = [r.rice_variety_id for r in session.query(RiceVariety).all()]
@@ -66,8 +84,9 @@ def seed_farm_dataset(session: Session, n=10):
             analysis_id=None,
             planting_date_start=fake.date_time_this_year()
         )
-        session.add(farm)
+        session.merge(farm)
     session.commit()
+    print("Seeding Farm Dataset")
 
 def seed_farming_history(session: Session, n=10):
     farmer_ids = [f.farmer_id for f in session.query(Farmer).all()]
@@ -79,8 +98,9 @@ def seed_farming_history(session: Session, n=10):
             history_title=fake.sentence(nb_words=4),
             yields=round(random.uniform(1, 10), 2)
         )
-        session.add(history)
+        session.merge(history)
     session.commit()
+    print("Seeding Farming History")
 
 def seed_variety_suggestion(session: Session, n=10):
     rice_ids = [r.rice_variety_id for r in session.query(RiceVariety).all()]
@@ -91,8 +111,9 @@ def seed_variety_suggestion(session: Session, n=10):
             date_generated=fake.date_time_this_year(),
             feedback=random.choice([True, False])
         )
-        session.add(suggestion)
+        session.merge(suggestion)
     session.commit()
+    print("Seeding Variety Suggestion")
 
 def seed_farming_schedule(session: Session, n=10):
     farmer_ids = [f.farmer_id for f in session.query(Farmer).all()]
@@ -104,8 +125,9 @@ def seed_farming_schedule(session: Session, n=10):
             farm_dataset_id=random.choice(farm_ids),
             farmer_feedback=random.choice([True, False])
         )
-        session.add(schedule)
+        session.merge(schedule)
     session.commit()
+    print("Seeding Farming Schedule")
 
 def seed_task(session: Session, n=10):
     schedule_ids = [s.schedule_id for s in session.query(FarmingSchedule).all()]
@@ -120,8 +142,9 @@ def seed_task(session: Session, n=10):
             feedback=random.choice([True, False]),
             date=fake.date_time_this_year()
         )
-        session.add(task)
+        session.merge(task)
     session.commit()
+    print("Seeding Task")
 
 def seed_soil_sensor_device(session: Session, n=5):
     for i in range(n):
@@ -132,8 +155,9 @@ def seed_soil_sensor_device(session: Session, n=5):
             curr_time=fake.time_object(),
             device_status=random.choice([True, False])
         )
-        session.add(sensor)
+        session.merge(sensor)
     session.commit()
+    print("Seeding Soil Sensor Device")
 
 def seed_soil_data(session: Session, n=10):
     sensor_ids = [s.sensor_id for s in session.query(SoilSensorDevice).all()]
@@ -148,8 +172,9 @@ def seed_soil_data(session: Session, n=10):
             potassium_level=round(random.uniform(0, 100), 2),
             sensor_id=random.choice(sensor_ids)
         )
-        session.add(soil)
+        session.merge(soil)
     session.commit()
+    print("Seeding Soil Data")
 
 def seed_soil_analysis(session: Session, n=10):
     soil_ids = [s.soil_id for s in session.query(SoilData).all()]
@@ -161,12 +186,13 @@ def seed_soil_analysis(session: Session, n=10):
             soil_health_summary=fake.sentence(),
             recommendations=fake.sentence()
         )
-        session.add(analysis)
+        session.merge(analysis)
     session.commit()
+    print("Seeding Soil Analysis")
 
 def run_all_seeders():
     session = SessionLocal()
-    seed_farmers(session)
+    seed_users(session)
     seed_seasons(session)
     seed_rice_varieties(session)
     seed_weather_data(session)
