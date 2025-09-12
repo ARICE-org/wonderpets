@@ -10,8 +10,10 @@ from .task import Task
 from .soil_sensor_device import SoilSensorDevice
 from .soil_data import SoilData
 from .soil_analysis import SoilAnalysis
+from .user import User
 
 __all__ = [
+    "User",
     "Farmer",
     "FarmingHistory",
     "RiceVariety",

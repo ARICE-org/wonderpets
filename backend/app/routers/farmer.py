@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from app.dependencies import get_db
 from app.models.farmer import Farmer as FarmerModel
@@ -15,7 +16,7 @@ def list_farmers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db))
 
 
 @router.get("/{farmer_id}", response_model=FarmerBase)
-def get_farmer(farmer_id: str, db: Session = Depends(get_db)):
+def get_farmer(farmer_id: UUID, db: Session = Depends(get_db)):
     farmer = db.get(FarmerModel, farmer_id)
     if not farmer:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -38,7 +39,7 @@ def create_farmer(payload: FarmerCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{farmer_id}", response_model=FarmerBase)
-def update_farmer(farmer_id: str, payload: FarmerUpdate, db: Session = Depends(get_db)):
+def update_farmer(farmer_id: UUID, payload: FarmerUpdate, db: Session = Depends(get_db)):
     farmer = db.get(FarmerModel, farmer_id)
     if not farmer:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -55,7 +56,7 @@ def update_farmer(farmer_id: str, payload: FarmerUpdate, db: Session = Depends(g
 
 
 @router.delete("/{farmer_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_farmer(farmer_id: str, db: Session = Depends(get_db)):
+def delete_farmer(farmer_id: UUID, db: Session = Depends(get_db)):
     farmer = db.get(FarmerModel, farmer_id)
     if not farmer:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
