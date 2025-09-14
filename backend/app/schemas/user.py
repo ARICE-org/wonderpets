@@ -14,7 +14,14 @@ class UserBase(BaseModel):
     }
 
 class UserCreate(UserBase):
-    pass
+    hashed_password: str = Field(..., alias="password")
+
+    model_config = {
+        "populate_by_name": True,
+    }
+
+
+
 
 class UserUpdate(BaseModel):
     email: Optional[str] = Field(..., alias="email")

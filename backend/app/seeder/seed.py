@@ -6,6 +6,8 @@ from app.models import *
 from faker import Faker
 import random
 
+from app.utils.auth.password_hashing import hash_password
+
 fake = Faker()
 
 def seed_users(session: Session, n=10):
@@ -15,7 +17,7 @@ def seed_users(session: Session, n=10):
         user = User(
             uuid=gen_uuid,
             email=fake.email(),
-            hashed_password=fake.password(length=16, special_chars=True, digits=False, upper_case=True, lower_case=False),
+            hashed_password=hash_password(fake.password(length=16, special_chars=True, digits=True, upper_case=True, lower_case=True)),
         )
         session.add(user)
         session.commit()

@@ -13,4 +13,4 @@ class Farmer(Base):
     address = Column(String, nullable=False, server_default="Pacol,Naga City")
     phone_number = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
