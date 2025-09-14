@@ -1,8 +1,7 @@
 # ARICE Project
 
 ## Project Description
-
-(To be filled in)
+This is ARICE
 
 ## 1. Installation
 ### Cloning Project
