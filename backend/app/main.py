@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.config.settings import settings
 from app.routers.ping import router as ping_router
 from app.routers.farmer import router as farmer_router
+from app.routers.user import router as user_router
+from app.routers.auth import router as auth_router
 from app.db import Base, engine
 import logging
 
@@ -19,6 +22,14 @@ tags_metadata = [
         "name": "Farmers",
         "description": "Endpoints for farmer operations.",
     },
+    {
+        "name": "Users",
+        "description": "Endpoints for User operations.",
+    },
+    {
+        "name": "Auth",
+        "description": "Endpoints for JWT OAuth operations.",
+    }
 ]
 
 app = FastAPI(
@@ -64,3 +75,5 @@ def read_root():
 # Routers
 app.include_router(ping_router)
 app.include_router(farmer_router)
+app.include_router(user_router)
+app.include_router(auth_router)
