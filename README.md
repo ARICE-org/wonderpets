@@ -4,21 +4,32 @@
 
 (To be filled in)
 
-## Installation
+## 1. Installation
 ### Cloning Project
 ```bash
-git clone https://github.com/Markrodriguez1105/wonderpets.git
-cd ARICE
+    git clone https://github.com/Markrodriguez1105/wonderpets.git
+    cd wonderpets
 ```
-
+---
+## 2. Run Project
 ### Docker
 
-This project is fully containerized using Docker. To build and run the application, you'll need to have Docker and Docker Compose installed.
+This project is fully containerized using Docker. To build and run the application, you'll need to have [Docker](https://www.docker.com/) and Docker Compose installed.
 
 1.  **Build and run the services:**
 
     ```bash
-    docker-compose up --build
+    docker compose up --build -d
+    ```
+    - Run specific services
+    ```bash
+    docker compose up --build -d "frontend" #Run React Native
+    ```
+    ```bash
+    docker compose up --build -d "backend" #Run FastAPI
+    ```
+    ```bash
+    docker compose up --build -d "postgre" #Run PostgreSQL
     ```
 
 2.  **Access the services:**
@@ -29,31 +40,93 @@ This project is fully containerized using Docker. To build and run the applicati
 3.  **To stop the services:**
 
     ```bash
-    docker-compose down
+    docker compose down
     ```
+    
+### Local Execution
+For development mode
 
-### Running Scripts 
-
-**Running both frontend and backend environments**
-
-    ``` bash
-    ./scripts/dev.ps1
+1. **Run PostgreSQL using Docker**
+    ```bash
+    docker compose up --build -d "postgre"
     ```
-**Running both frontend environments using scripts**
+2. **Run FastAPI (Backend)**
+   1. Move to backend directory
+      ```bash
+      cd backend
+      ```
+   2. Initialize Virtual Environment
+      ```bash
+      python -m venv .venv
+      ```
+   3. Activate Virtual Environment
+      ```bash
+      .venv\Scripts\Activate
+      ```
+   4. Install required dependencies
+      ```bash
+      pip install -r app/requirements.txt
+      ```
+   5. Run migration using alembic
+      ```bash
+      alembic upgrade head
+      ```
+   6. Run FastAPI Service using uvicorn
+      ```bash
+      uvicorn app.main:app --reload
+      ```
+3. **Run React Native (Frontend)**
+   1. Move to frontend directory
+      ```bash
+      cd frontend
+      ```
+   2. Install dependencies
+      ```bash
+      npm install
+      ```
+   3. Run and Build frontend service
+      ```bash
+      npm expo start
+      ```
 
-    ``` bash
-    ./scripts/run-frontend.ps1
-    ```
-**Running both backend environments using scripts**
+[//]: # (### Running Scripts )
 
-    ``` bash
-    ./scripts/run-backend.ps1
-    ```
-**Stoping both backend environments using scripts**
+[//]: # ()
+[//]: # (**Running both frontend and backend environments**)
 
-    ``` bash
-    ./scripts/stop-dev.ps1
-    ```
+[//]: # ()
+[//]: # (    ``` bash)
+
+[//]: # (    ./scripts/dev.ps1)
+
+[//]: # (    ```)
+
+[//]: # (**Running both frontend environments using scripts**)
+
+[//]: # ()
+[//]: # (    ``` bash)
+
+[//]: # (    ./scripts/run-frontend.ps1)
+
+[//]: # (    ```)
+
+[//]: # (**Running both backend environments using scripts**)
+
+[//]: # ()
+[//]: # (    ``` bash)
+
+[//]: # (    ./scripts/run-backend.ps1)
+
+[//]: # (    ```)
+
+[//]: # (**Stoping both backend environments using scripts**)
+
+[//]: # ()
+[//]: # (    ``` bash)
+
+[//]: # (    ./scripts/stop-dev.ps1)
+
+[//]: # (    ```)
     
 ## Architecture Review (Project File Structure)
 
@@ -63,13 +136,15 @@ The project is a monorepo with a client-server architecture, organized into thre
 /ARICE
 |-- backend/         # FastAPI Python backend
 |   |-- app/
-|   |   |-- config/    # Pydantic settings management
-|   |   |-- models/    # SQLAlchemy ORM models
-|   |   |-- routers/   # API endpoint routers
-|   |   |-- schemas/   # Pydantic data schemas
-|   |   |-- db.py      # Database engine and session setup
-|   |   `-- main.py    # FastAPI app instantiation and main entrypoint
-|   `-- app.db       # SQLite database file for local development
+|       |-- alembic/   # Migration versioning tool
+|       |-- config/    # Pydantic settings management
+|       |-- models/    # SQLAlchemy ORM models
+|       |-- routers/   # API endpoint routers
+|       |-- schemas/   # Pydantic data schemas
+|       |-- db.py      # Database engine and session setup
+|       |-- dependencies.py     #Export the db to perform query
+|       |-- main.py    # FastAPI app instantiation and main entrypoint
+|       `-- requirements.txt    #Lists of dependencies for this projects
 |
 |-- frontend/        # Expo (React Native) frontend
 |   |-- app/         # Application screens and navigation (file-based routing)
