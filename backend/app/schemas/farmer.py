@@ -13,6 +13,7 @@ class FarmerBase(BaseModel):
 
     model_config = {
         "populate_by_name": True,
+        "from_attributes": True,
     }
 
 
