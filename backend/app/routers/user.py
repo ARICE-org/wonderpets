@@ -12,6 +12,8 @@ from app.schemas.farmer import FarmerBase
 from app.schemas.user import UserInDB
 from app.models.user import User
 from app.utils.auth.jwt_token import SECRET_KEY, ALGORITHM
+from app.utils.auth.password_checker import is_valid_password, error_message as password_errors
+from app.utils.auth.password_hashing import hash_password
 
 router = APIRouter(prefix="/user", tags=["Users"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -34,6 +36,24 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 def list_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(User).offset(skip).limit(limit).all()
 
+# @router.put("/update")
+# def update_user(email: str, password: str, db: Session = Depends(get_db)):
+#     user = db.query(User).filter(User.email == email).first()
+#
+#     if user is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+#
+#     if not is_valid_password(password):
+#         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=password_errors)
+#
+#     db.query(User).update({
+#         "hashed_password": hash_password(password),
+#     })
+#
+#     db.commit()
+#     db.refresh(user)
+#
+#     return "User updated successfully"
 @router.get("/me")
 def get_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     farmer = db.get(Farmer, current_user.uuid)
