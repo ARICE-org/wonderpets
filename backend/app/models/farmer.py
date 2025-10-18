@@ -8,5 +8,5 @@ class Farmer(Base):
     first_name = Column(String, nullable=False, index=True)
     middle_name = Column(String, nullable=True)
     last_name = Column(String, nullable=False, index=True)
-    address = Column(String, nullable=False, server_default="Pacol,Naga City")
+    address = Column(String, nullable=False, default="Pacol, Naga City")
     

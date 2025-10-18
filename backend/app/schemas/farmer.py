@@ -8,7 +8,7 @@ class FarmerBase(BaseModel):
     first_name: str = Field(..., alias="firstName")
     middle_name: Optional[str] = Field(None, alias="middleName")
     last_name: str = Field(..., alias="lastName")
-    address: str = Field(..., alias="address")
+    address: Optional[str] = Field(None, alias="address")
 
     model_config = {
         "populate_by_name": True,
