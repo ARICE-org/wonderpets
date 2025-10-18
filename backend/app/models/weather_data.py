@@ -1,13 +1,11 @@
-from sqlalchemy import Column, String, TIMESTAMP, Float, CHAR
-from sqlalchemy.ext.declarative import declarative_base
+import uuid
+from sqlalchemy import UUID, Column, DateTime, Float, CHAR, func
 from app.db import Base
-
-# Base = declarative_base()
 
 class WeatherData(Base):
     __tablename__ = "weather_data"
-    weather_id = Column(String(20), primary_key=True)
-    datetime = Column(TIMESTAMP, nullable=False)
+    weather_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    date = Column(DateTime(timezone=True), nullable=False, default=func.now())
     max_temp = Column(Float, nullable=False)
     min_temp = Column(Float, nullable=False)
     rainfall = Column(Float, nullable=False)

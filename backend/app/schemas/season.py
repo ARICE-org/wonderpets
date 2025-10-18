@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
@@ -20,9 +21,7 @@ class SeasonUpdate(BaseModel):
     }
 
 class SeasonInDB(SeasonBase):
-    season_id: str = Field(..., alias="seasonId")
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    season_id: UUID = Field(..., alias="seasonId")
 
     model_config = {
         "from_attributes": True,

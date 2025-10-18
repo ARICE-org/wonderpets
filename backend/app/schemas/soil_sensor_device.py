@@ -1,38 +1,32 @@
-from pydantic import BaseModel, Field, UUID4, ConfigDict
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-import uuid
+from uuid import UUID
 
 class SoilSensorDeviceBase(BaseModel):
     sensor_desc: str = Field(..., max_length=50, alias="sensorDesc")
     device_status: bool = Field(default=True, alias="deviceStatus")
 
-    model_config = ConfigDict(
-        populate_by_name=True,
-        from_attributes=True
-    )
+    model_config = {
+        "populate_by_name": True,
+    }
 
 class SoilSensorDeviceCreate(SoilSensorDeviceBase):
     pass
 
-class SoilSensorDevice(SoilSensorDeviceBase):
-    sensor_id: uuid.UUID = Field(..., alias="sensorId")
-    created_at: datetime = Field(..., alias="createdAt")
-    updated_at: datetime = Field(..., alias="updatedAt")
-
 class SoilSensorDeviceUpdate(BaseModel):
     sensor_desc: Optional[str] = Field(None, max_length=50, alias="sensorDesc")
     device_status: Optional[bool] = Field(None, alias="deviceStatus")
+    updated_date: Optional[datetime] = Field(default=datetime.now(), alias="updatedDate")
 
-    model_config = ConfigDict(
-        populate_by_name=True,
-        from_attributes=True
-    )
+    model_config = {
+        "populate_by_name": True,
+    }
 
 class SoilSensorDeviceInDB(SoilSensorDeviceBase):
-    sensor_id: UUID4 = Field(..., alias="sensorId")
-    created_date: Optional[datetime] = None
-    updated_date: Optional[datetime] = None
+    sensor_id: UUID = Field(..., alias="sensorId")
+    created_date: Optional[datetime] = Field(default=datetime.now(), alias="createdDate")
+    updated_date: Optional[datetime] = Field(default=datetime.now(), alias="updatedDate")
 
     model_config = {
         "from_attributes": True,

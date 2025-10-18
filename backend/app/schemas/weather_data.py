@@ -1,9 +1,10 @@
+from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
 class WeatherDataBase(BaseModel):
-    datetime: datetime = Field(..., alias="datetime")
+    date: datetime = Field(default=datetime.now(), alias="datetime")
     max_temp: float = Field(..., alias="maxTemp")
     min_temp: float = Field(..., alias="minTemp")
     rainfall: float = Field(..., alias="rainfall")
@@ -19,7 +20,7 @@ class WeatherDataCreate(WeatherDataBase):
     pass
 
 class WeatherDataUpdate(BaseModel):
-    datetime: Optional[datetime] = Field(None, alias="datetime")
+    date: Optional[datetime] = Field(None, alias="datetime")
     max_temp: Optional[float] = Field(None, alias="maxTemp")
     min_temp: Optional[float] = Field(None, alias="minTemp")
     rainfall: Optional[float] = Field(None, alias="rainfall")
@@ -32,9 +33,7 @@ class WeatherDataUpdate(BaseModel):
     }
 
 class WeatherDataInDB(WeatherDataBase):
-    weather_id: str = Field(..., alias="weatherId")
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    weather_id: UUID = Field(..., alias="weatherId")
 
     model_config = {
         "from_attributes": True,
