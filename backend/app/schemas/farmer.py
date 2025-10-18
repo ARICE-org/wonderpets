@@ -32,8 +32,6 @@ class FarmerUpdate(BaseModel):
 
 class FarmerInDB(FarmerBase):
     farmer_id: UUID = Field(..., alias="farmerId")
-    created_at: datetime
-    updated_at: Optional[datetime] = None
 
     model_config = {
         "from_attributes": True,
