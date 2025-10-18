@@ -61,7 +61,7 @@ def upgrade() -> None:
     sa.Column('first_name', sa.String(), nullable=False),
     sa.Column('middle_name', sa.String(), nullable=True),
     sa.Column('last_name', sa.String(), nullable=False),
-    sa.Column('address', sa.String(), server_default='Pacol,Naga City', nullable=False),
+    sa.Column('address', sa.String(), default='Pacol,Naga City', nullable=False),
     sa.ForeignKeyConstraint(['farmer_id'], ['users.user_id'], ),
     sa.PrimaryKeyConstraint('farmer_id')
     )
