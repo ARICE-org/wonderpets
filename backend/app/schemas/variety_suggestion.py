@@ -1,9 +1,10 @@
+from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
 class VarietySuggestionBase(BaseModel):
-    rice_variety_id: str = Field(..., alias="riceVarietyId")
+    rice_variety_id: UUID = Field(..., alias="riceVarietyId")
     date_generated: datetime = Field(..., alias="dateGenerated")
     feedback: bool = Field(..., alias="feedback")
 
@@ -15,7 +16,7 @@ class VarietySuggestionCreate(VarietySuggestionBase):
     pass
 
 class VarietySuggestionUpdate(BaseModel):
-    rice_variety_id: Optional[str] = Field(None, alias="riceVarietyId")
+    rice_variety_id: Optional[UUID] = Field(None, alias="riceVarietyId")
     date_generated: Optional[datetime] = Field(None, alias="dateGenerated")
     feedback: Optional[bool] = Field(None, alias="feedback")
 
@@ -25,8 +26,7 @@ class VarietySuggestionUpdate(BaseModel):
 
 class VarietySuggestionInDB(VarietySuggestionBase):
     variety_sugg_id: str = Field(..., alias="varietySuggId")
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_date: Optional[datetime] = Field(default=datetime.now(), alias="createdDate")
 
     model_config = {
         "from_attributes": True,

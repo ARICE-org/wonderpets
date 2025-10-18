@@ -1,12 +1,10 @@
-from sqlalchemy import Column, String, TIMESTAMP, Boolean, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
+import uuid
+from sqlalchemy import UUID, Column, Boolean, DateTime, ForeignKey, func
 from app.db import Base
-
-# Base = declarative_base()
 
 class VarietySuggestion(Base):
     __tablename__ = "variety_suggestion"
-    variety_sugg_id = Column(String(20), primary_key=True)
-    rice_variety_id = Column(String(20), ForeignKey("rice_variety.rice_variety_id"), nullable=False)
-    date_generated = Column(TIMESTAMP, nullable=False)
-    feedback = Column(Boolean, nullable=False)
+    variety_sugg_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    rice_variety_id = Column(UUID(as_uuid=True), ForeignKey("rice_variety.rice_variety_id"), nullable=False)
+    feedback = Column(Boolean, nullable=True)
+    created_date = Column(DateTime(timezone=True), default=func.now())

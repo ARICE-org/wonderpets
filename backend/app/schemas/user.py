@@ -7,34 +7,33 @@ from pydantic import BaseModel, Field
 
 class UserBase(BaseModel):
     email: str = Field(..., alias="email")
-    hashed_password: str = Field(..., alias="hashedPassword")
+    phone_number: Optional[str] = Field(..., alias="phoneNumber")
 
     model_config = {
         "populate_by_name": True,
     }
 
 class UserCreate(UserBase):
-    hashed_password: str = Field(..., alias="password")
+    password: str = Field(..., alias="password")
 
     model_config = {
         "populate_by_name": True,
     }
 
-
-
-
 class UserUpdate(BaseModel):
     email: Optional[str] = Field(..., alias="email")
-    hashed_password: Optional[str] = Field(..., alias="hashedPassword")
+    password: Optional[str] = Field(..., alias="password")
+    phone_number: Optional[str] = Field(None, alias="phoneNumber")
 
     model_config = {
         "populate_by_name": True,
     }
 
 class UserInDB(UserBase):
-    uuid: UUID = Field(..., alias="userId")
-    created_at: datetime
-    updated_at: Optional[datetime] = None
+    user_id: UUID = Field(..., alias="userId")
+    password: str = Field(..., alias="password")
+    created_at: Optional[datetime] = Field(..., alias="createdAt")
+    updated_at: Optional[datetime] = Field(None, alias="updatedAt")
 
     model_config = {
         "from_attributes": True,
