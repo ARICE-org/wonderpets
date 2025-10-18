@@ -34,7 +34,7 @@ def upgrade() -> None:
     sa.Column('updated_date', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('sensor_id')
     )
-    op.create_table('user',
+    op.create_table('users',
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('email', sa.String(length=320), nullable=False),
     sa.Column('password', sa.String(length=255), nullable=False),
@@ -44,7 +44,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('user_id'),
     sa.UniqueConstraint('email')
     )
-    op.create_index(op.f('ix_user_user_id'), 'user', ['user_id'], unique=False)
+    op.create_index(op.f('ix_user_user_id'), 'users', ['user_id'], unique=False)
     op.create_table('weather_data',
     sa.Column('weather_id', sa.UUID(), nullable=False),
     sa.Column('date', sa.DateTime(timezone=True), nullable=False),
@@ -62,7 +62,7 @@ def upgrade() -> None:
     sa.Column('middle_name', sa.String(), nullable=True),
     sa.Column('last_name', sa.String(), nullable=False),
     sa.Column('address', sa.String(), server_default='Pacol,Naga City', nullable=False),
-    sa.ForeignKeyConstraint(['farmer_id'], ['user.user_id'], ),
+    sa.ForeignKeyConstraint(['farmer_id'], ['users.user_id'], ),
     sa.PrimaryKeyConstraint('farmer_id')
     )
     op.create_index(op.f('ix_farmer_first_name'), 'farmer', ['first_name'], unique=False)
@@ -164,8 +164,8 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_farmer_first_name'), table_name='farmer')
     op.drop_table('farmer')
     op.drop_table('weather_data')
-    op.drop_index(op.f('ix_user_user_id'), table_name='user')
-    op.drop_table('user')
+    op.drop_index(op.f('ix_user_user_id'), table_name='users')
+    op.drop_table('users')
     op.drop_table('soil_sensor_devices')
     op.drop_table('season')
     # ### end Alembic commands ###

@@ -52,15 +52,18 @@ This project is fully containerized using Docker. To build and run the applicati
     docker compose down
     ```
 
+4.  **Configure Postgre Database**
+    [PostgreSQL CLI Commands Cheat Sheet](postgres_cli_commands.md)
+
 ### Local Execution
 
 For development mode
 
-1. **Run PostgreSQL using Docker**
+1. **Run `PostgreSQL` using Docker**
    ```bash
    docker compose up --build -d "postgre"
    ```
-2. **Run FastAPI (Backend)**
+2. **Run `FastAPI` (Backend)**
    1. Move to backend directory
       ```bash
       cd backend
@@ -85,7 +88,7 @@ For development mode
       ```bash
       uvicorn app.main:app --reload
       ```
-3. **Run React Native (Frontend)**
+3. **Run `React Native` (Frontend)**
    1. Move to frontend directory
       ```bash
       cd frontend

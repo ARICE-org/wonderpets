@@ -1,11 +1,10 @@
-import uuid
-from sqlalchemy import UUID, Column, String, DateTime, ForeignKey, func
+from sqlalchemy import UUID, Column, String, ForeignKey
 from app.db import Base
 
 class Farmer(Base):
     __tablename__ = "farmer"
 
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("user.user_id"), primary_key=True)
+    farmer_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), primary_key=True)
     first_name = Column(String, nullable=False, index=True)
     middle_name = Column(String, nullable=True)
     last_name = Column(String, nullable=False, index=True)
