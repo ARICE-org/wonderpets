@@ -9,7 +9,6 @@ class FarmerBase(BaseModel):
     middle_name: Optional[str] = Field(None, alias="middleName")
     last_name: str = Field(..., alias="lastName")
     address: str = Field(..., alias="address")
-    phone_number: str = Field(..., alias="phoneNumber")
 
     model_config = {
         "populate_by_name": True,
@@ -26,7 +25,6 @@ class FarmerUpdate(BaseModel):
     middle_name: Optional[str] = Field(None, alias="middleName")
     last_name: Optional[str] = Field(None, alias="lastName")
     address: Optional[str] = None
-    phone_number: Optional[str] = Field(None, alias="phoneNumber")
 
     model_config = {
         "populate_by_name": True,
@@ -35,8 +33,6 @@ class FarmerUpdate(BaseModel):
 
 class FarmerInDB(FarmerBase):
     farmer_id: UUID = Field(..., alias="farmerId")
-    created_at: datetime
-    updated_at: Optional[datetime] = None
 
     model_config = {
         "from_attributes": True,

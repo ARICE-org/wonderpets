@@ -1,11 +1,11 @@
+from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
 
 class FarmingScheduleBase(BaseModel):
-    farmer_id: str = Field(..., alias="farmerId")
-    farm_dataset_id: str = Field(..., alias="farmDatasetId")
-    farmer_feedback: bool = Field(..., alias="farmerFeedback")
+    farmer_id: UUID = Field(..., alias="farmerId")
+    farm_dataset_id: UUID = Field(..., alias="farmDatasetId")
+    farmer_feedback: Optional[bool] = Field(None, alias="farmerFeedback")
 
     model_config = {
         "populate_by_name": True,
@@ -15,8 +15,8 @@ class FarmingScheduleCreate(FarmingScheduleBase):
     pass
 
 class FarmingScheduleUpdate(BaseModel):
-    farmer_id: Optional[str] = Field(None, alias="farmerId")
-    farm_dataset_id: Optional[str] = Field(None, alias="farmDatasetId")
+    farmer_id: Optional[UUID] = Field(None, alias="farmerId")
+    farm_dataset_id: Optional[UUID] = Field(None, alias="farmDatasetId")
     farmer_feedback: Optional[bool] = Field(None, alias="farmerFeedback")
 
     model_config = {
@@ -24,9 +24,7 @@ class FarmingScheduleUpdate(BaseModel):
     }
 
 class FarmingScheduleInDB(FarmingScheduleBase):
-    schedule_id: str = Field(..., alias="scheduleId")
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    schedule_id: UUID = Field(..., alias="scheduleId")
 
     model_config = {
         "from_attributes": True,

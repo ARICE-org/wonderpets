@@ -7,6 +7,7 @@ from app.routers.ping import router as ping_router
 from app.routers.farmer import router as farmer_router
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
+from app.routers.soil_sensor_device import router as soil_sensor_router
 from app.db import Base, engine
 import logging
 
@@ -77,3 +78,4 @@ app.include_router(ping_router)
 app.include_router(farmer_router)
 app.include_router(user_router)
 app.include_router(auth_router)
+app.include_router(soil_sensor_router)

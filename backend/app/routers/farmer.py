@@ -36,7 +36,6 @@ def create_farmer(payload: FarmerCreate, current_user: User = Depends(get_curren
         middle_name=payload.middle_name,
         last_name=payload.last_name,
         address=payload.address,
-        phone_number=payload.phone_number,
     )
     db.add(farmer)
     db.commit()

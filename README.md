@@ -2,16 +2,21 @@
 
 ## Project Description
 
-(To be filled in)
+This is ARICE
 
 ## 1. Installation
+
 ### Cloning Project
+
 ```bash
     git clone https://github.com/Markrodriguez1105/wonderpets.git
     cd wonderpets
 ```
+
 ---
+
 ## 2. Run Project
+
 ### Docker
 
 This project is fully containerized using Docker. To build and run the application, you'll need to have [Docker](https://www.docker.com/) and Docker Compose installed.
@@ -21,36 +26,44 @@ This project is fully containerized using Docker. To build and run the applicati
     ```bash
     docker compose up --build -d
     ```
+
     - Run specific services
+
     ```bash
     docker compose up --build -d "frontend" #Run React Native
     ```
+
     ```bash
     docker compose up --build -d "backend" #Run FastAPI
     ```
+
     ```bash
     docker compose up --build -d "postgre" #Run PostgreSQL
     ```
 
 2.  **Access the services:**
 
-    *   **Backend API:** [http://localhost:8000](http://localhost:8000)
-    *   **Frontend Web:** [http://localhost:8081](http://localhost:8081)
+    - **Backend API:** [http://localhost:8000](http://localhost:8000)
+    - **Frontend Web:** [http://localhost:8081](http://localhost:8081)
 
 3.  **To stop the services:**
 
     ```bash
     docker compose down
     ```
-    
+
+4.  **Configure Postgre Database**
+    [PostgreSQL CLI Commands Cheat Sheet](postgres_cli_commands.md)
+
 ### Local Execution
+
 For development mode
 
-1. **Run PostgreSQL using Docker**
-    ```bash
-    docker compose up --build -d "postgre"
-    ```
-2. **Run FastAPI (Backend)**
+1. **Run `PostgreSQL` using Docker**
+   ```bash
+   docker compose up --build -d "postgre"
+   ```
+2. **Run `FastAPI` (Backend)**
    1. Move to backend directory
       ```bash
       cd backend
@@ -75,7 +88,7 @@ For development mode
       ```bash
       uvicorn app.main:app --reload
       ```
-3. **Run React Native (Frontend)**
+3. **Run `React Native` (Frontend)**
    1. Move to frontend directory
       ```bash
       cd frontend
@@ -89,45 +102,29 @@ For development mode
       npm expo start
       ```
 
-[//]: # (### Running Scripts )
+[//]: # "### Running Scripts "
+[//]: #
+[//]: # "**Running both frontend and backend environments**"
+[//]: #
+[//]: # "    ``` bash"
+[//]: # "    ./scripts/dev.ps1"
+[//]: # "    ```"
+[//]: # "**Running both frontend environments using scripts**"
+[//]: #
+[//]: # "    ``` bash"
+[//]: # "    ./scripts/run-frontend.ps1"
+[//]: # "    ```"
+[//]: # "**Running both backend environments using scripts**"
+[//]: #
+[//]: # "    ``` bash"
+[//]: # "    ./scripts/run-backend.ps1"
+[//]: # "    ```"
+[//]: # "**Stoping both backend environments using scripts**"
+[//]: #
+[//]: # "    ``` bash"
+[//]: # "    ./scripts/stop-dev.ps1"
+[//]: # "    ```"
 
-[//]: # ()
-[//]: # (**Running both frontend and backend environments**)
-
-[//]: # ()
-[//]: # (    ``` bash)
-
-[//]: # (    ./scripts/dev.ps1)
-
-[//]: # (    ```)
-
-[//]: # (**Running both frontend environments using scripts**)
-
-[//]: # ()
-[//]: # (    ``` bash)
-
-[//]: # (    ./scripts/run-frontend.ps1)
-
-[//]: # (    ```)
-
-[//]: # (**Running both backend environments using scripts**)
-
-[//]: # ()
-[//]: # (    ``` bash)
-
-[//]: # (    ./scripts/run-backend.ps1)
-
-[//]: # (    ```)
-
-[//]: # (**Stoping both backend environments using scripts**)
-
-[//]: # ()
-[//]: # (    ``` bash)
-
-[//]: # (    ./scripts/stop-dev.ps1)
-
-[//]: # (    ```)
-    
 ## Architecture Review (Project File Structure)
 
 The project is a monorepo with a client-server architecture, organized into three main directories:
@@ -166,45 +163,46 @@ The project is a monorepo with a client-server architecture, organized into thre
 
 ## Key Features
 
-*   **Architecture Design**: A decoupled monorepo architecture with a Python backend and a React Native (Expo) frontend. Communication occurs via a REST API, allowing the frontend and backend to be developed, tested, and deployed independently.
-*   **Frontend Stack**: Built with **Expo** and **React Native**, enabling cross-platform development for web, iOS, and Android from a single codebase. It uses file-based routing for navigation and includes a component-based structure for maintainability.
-*   **Database Integration**: The backend uses **SQLAlchemy** as its ORM for database-agnostic data modeling. It is configured to use **SQLite** for local development and can be easily switched to a production database like **PostgreSQL** by changing the `DATABASE_URL` environment variable.
+- **Architecture Design**: A decoupled monorepo architecture with a Python backend and a React Native (Expo) frontend. Communication occurs via a REST API, allowing the frontend and backend to be developed, tested, and deployed independently.
+- **Frontend Stack**: Built with **Expo** and **React Native**, enabling cross-platform development for web, iOS, and Android from a single codebase. It uses file-based routing for navigation and includes a component-based structure for maintainability.
+- **Database Integration**: The backend uses **SQLAlchemy** as its ORM for database-agnostic data modeling. It is configured to use **Alembic** for local development and can be easily switched to a production database like **PostgreSQL** by changing the `DATABASE_URL` environment variable.
 
 ## Git Flow Integration
 
 This project uses a feature-based branching strategy to keep the `develop` branch clean and deployable at all times.
 
-
 ### Branch Structure
 
-*   **`main`**: The primary branch representing the latest stable, production-ready code.
-*   **`develop`**: An integration branch where features are merged before being released to `develop`.
-*   **`feat/<feature-name>`**: Branches for developing new features. Branched from `feature/<your-branch>` and merged back into `develop` via a pull request.
-*   **`fix/<issue-name>`**: Branches for bug fixes. Branched from `develop` and merged back.
-*   **`docs/<topic-name>`**: Branches for writing documentation.
+- **`main`**: The primary branch representing the latest stable, production-ready code.
+- **`develop`**: An integration branch where features are merged before being released to `develop`.
+- **`feat/<feature-name>`**: Branches for developing new features. Branched from `feature/<your-branch>` and merged back into `develop` via a pull request.
+- **`fix/<issue-name>`**: Branches for bug fixes. Branched from `develop` and merged back.
+- **`docs/<topic-name>`**: Branches for writing documentation.
 
 ### Commit Messages
 
 We follow the **Conventional Commits** specification to create an explicit commit history. Each commit message should be prefixed with a type:
 
-*   **feat**: A new feature.
-*   **fix**: A bug fix.
-*   **docs**: Documentation only changes.
-*   **test**: Adding missing tests or correcting existing tests.
-*   **chore**: Changes to the build process or auxiliary tools and libraries such as documentation generation.
-*   **refactor**: A code change that neither fixes a bug nor adds a feature.
+- **feat**: A new feature.
+- **fix**: A bug fix.
+- **docs**: Documentation only changes.
+- **test**: Adding missing tests or correcting existing tests.
+- **chore**: Changes to the build process or auxiliary tools and libraries such as documentation generation.
+- **refactor**: A code change that neither fixes a bug nor adds a feature.
 
 Example: `feat: add user authentication endpoint`
 
 ### Pull Request Workflow
+
 When following the pull request workflow, the pull request should be created from the `feature/<your-branch>` branch to the `develop` branch.
 
 **Example Pull Request**
-```
-## Description 
-    This PR includes adding a new feature to the frontend 
 
-## Summary of Changes 
+```
+## Description
+    This PR includes adding a new feature to the frontend
+
+## Summary of Changes
  - added new feature to frontend
 
 ## Screenshot of changes
@@ -216,5 +214,5 @@ When following the pull request workflow, the pull request should be created fro
 
 The backend API documentation is automatically generated and available when the server is running.
 
-*   **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-*   **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
