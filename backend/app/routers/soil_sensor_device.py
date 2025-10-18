@@ -10,7 +10,7 @@ from app.controllers.soil_sensor_device import get_soil_sensor_device, get_soil_
 
 router = APIRouter(
     prefix="/sensors",
-    tags=["sensors"],
+    tags=["Sensors"],
     responses={404: {"description": "Not found"}},
 )
 
@@ -57,7 +57,7 @@ def read_soil_sensor(
 def list_soil_sensors(
     skip: int = 0,
     limit: int = 100,
-    status: bool = None,
+    status: bool = True,
     db: Session = Depends(get_db)
 ):
     """
