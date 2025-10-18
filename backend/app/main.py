@@ -8,6 +8,7 @@ from app.routers.farmer import router as farmer_router
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
 from app.routers.soil_sensor_device import router as soil_sensor_router
+from app.routers.weather import router as weather_router
 from app.db import Base, engine
 import logging
 
@@ -16,20 +17,24 @@ logger = logging.getLogger("uvicorn")
 # OpenAPI/Swagger configuration
 tags_metadata = [
     {
-        "name": "Health",
-        "description": "Endpoints for health checks and service liveness.",
-    },
-    {
-        "name": "Farmers",
-        "description": "Endpoints for farmer operations.",
+        "name": "Auth",
+        "description": "Endpoints for JWT OAuth operations.",
     },
     {
         "name": "Users",
         "description": "Endpoints for User operations.",
     },
     {
-        "name": "Auth",
-        "description": "Endpoints for JWT OAuth operations.",
+        "name": "Farmers",
+        "description": "Endpoints for farmer operations.",
+    },
+    {
+        "name": "Weather",
+        "description": "Endpoints for weather data operations.",
+    },
+    {
+        "name": "Sensors",
+        "description": "Endpoints for sensors data operations.",
     }
 ]
 
@@ -69,13 +74,15 @@ def on_startup():
     logger.info(f"Connected to: postgresql://{settings.POSTGRES_USER}:@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}")
     logger.info("-------------------------------")
 
-@app.get("/")
-def read_root():
-    return {"message": "Backend is running!"}
 
 # Routers
-app.include_router(ping_router)
+# app.include_router(ping_router)
 app.include_router(farmer_router)
 app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(soil_sensor_router)
+app.include_router(weather_router)
+
+@app.get("/")
+def read_root():
+    return {"message": "Backend is running!"}
