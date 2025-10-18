@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+import uuid
 
 class SoilDataBase(BaseModel):
     timestamp: datetime = Field(..., alias="timestamp")
@@ -9,7 +10,7 @@ class SoilDataBase(BaseModel):
     nitrogen_level: float = Field(..., alias="nitrogenLevel")
     phosphorus_level: float = Field(..., alias="phosphorusLevel")
     potassium_level: float = Field(..., alias="potassiumLevel")
-    sensor_id: int = Field(..., alias="sensorId")
+    sensor_id: uuid.UUID = Field(..., alias="sensorId")
 
     model_config = {
         "populate_by_name": True,
@@ -25,7 +26,7 @@ class SoilDataUpdate(BaseModel):
     nitrogen_level: Optional[float] = Field(None, alias="nitrogenLevel")
     phosphorus_level: Optional[float] = Field(None, alias="phosphorusLevel")
     potassium_level: Optional[float] = Field(None, alias="potassiumLevel")
-    sensor_id: Optional[int] = Field(None, alias="sensorId")
+    sensor_id: Optional[uuid.UUID] = Field(None, alias="sensorId")
 
     model_config = {
         "populate_by_name": True,

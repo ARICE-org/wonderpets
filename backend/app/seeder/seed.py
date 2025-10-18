@@ -149,12 +149,11 @@ def seed_task(session: Session, n=10):
     print("Seeding Task")
 
 def seed_soil_sensor_device(session: Session, n=5):
-    for i in range(n):
+    for _ in range(n):
         sensor = SoilSensorDevice(
-            sensor_id=i+1,
+            sensor_id=uuid.uuid4(),
             sensor_desc=fake.word().capitalize(),
-            curr_date=fake.date_this_year(),
-            curr_time=fake.time_object(),
+            created_date=fake.date_time_this_year(),
             device_status=random.choice([True, False])
         )
         session.merge(sensor)
@@ -165,7 +164,7 @@ def seed_soil_data(session: Session, n=10):
     sensor_ids = [s.sensor_id for s in session.query(SoilSensorDevice).all()]
     for _ in range(n):
         soil = SoilData(
-            soil_id=fake.uuid4()[:20],
+            soil_id=uuid.uuid4(),
             timestamp=fake.date_time_this_year(),
             soil_moisture=round(random.uniform(10, 50), 2),
             soil_ph=round(random.uniform(5, 8), 2),
