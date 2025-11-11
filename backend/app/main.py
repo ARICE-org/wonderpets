@@ -65,14 +65,25 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    # Create tables if they do not exist
-    Base.metadata.create_all(bind=engine)
-    logger.info("-------------------------------")
-    logger.info("✅ ARICE API is up and running! 🚀")
-    logger.info("📚 Swagger UI available at /docs")
-    logger.info("📘 ReDoc available at /redoc")
-    logger.info(f"Connected to: postgresql://{settings.POSTGRES_USER}:@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}")
-    logger.info("-------------------------------")
+    # Create tables if they do not exist. Wrap in try/except to avoid hard crash
+    # when the DB host is not reachable (common during local development when
+    # Postgres runs in Docker and the backend runs on the host).
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("-------------------------------")
+        logger.info("✅ ARICE API is up and running! 🚀")
+        logger.info("📚 Swagger UI available at /docs")
+        logger.info("📘 ReDoc available at /redoc")
+        logger.info(f"Connected to: postgresql://{settings.POSTGRES_USER}:@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}")
+        logger.info("-------------------------------")
+    except Exception as exc:  # pragma: no cover - operational startup error
+        # Log a helpful message and continue. This makes it easier to run the
+        # backend locally without a reachable DB while preserving visibility
+        # to the error for debugging.
+        logger.error("Failed to connect to the database during startup.")
+        logger.error("Ensure POSTGRES_HOST is reachable from this process (check .env and docker-compose).")
+        logger.error(f"DB connect info: host={settings.POSTGRES_HOST} port={settings.POSTGRES_PORT} db={settings.POSTGRES_DB} user={settings.POSTGRES_USER}")
+        logger.exception(exc)
 
 
 # Routers
