@@ -1,3 +1,4 @@
+from app.packages.decorators.search_helpers import searchable
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -54,11 +55,13 @@ def read_soil_sensor(
     response_model=List[SoilSensorDevice],
     summary="List all soil sensor devices"
 )
+@searchable(fields=["sensor_desc", "device_status"], mode="ilike", model=SoilSensorDeviceModel)
 def list_soil_sensors(
     skip: int = 0,
     limit: int = 100,
     status: bool = True,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    search: str = None
 ):
     """
     Retrieve a list of all soil sensor devices with optional status filtering.
@@ -67,7 +70,8 @@ def list_soil_sensors(
         db, 
         skip=skip, 
         limit=limit, 
-        status=status
+        status=status,
+        search=search
     )
 
 @router.put(
@@ -115,3 +119,9 @@ def delete_soil_sensor(
         )
     delete_soil_sensor_device(db=db, db_sensor=db_sensor)
     return None
+
+
+
+# def get_soil_sensor_device(db: Session, sensor_id: uuid.UUID) -> Optional[models.SoilSensorDevice]:
+#     """Get a single soil sensor device by ID"""
+#     return db.query(models.SoilSensorDevice).filter(models.SoilSensorDevice.sensor_id == sensor_id).first()
