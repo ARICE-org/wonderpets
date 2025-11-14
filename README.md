@@ -6,6 +6,18 @@ This is ARICE
 
 ## 1. Installation
 
+### Python Version
+
+- [Python 3.13.5](https://www.python.org/downloads/release/python-3135/)
+
+### IDE (Integrated Development Environment)
+
+- [Visual Studio Code](https://code.visualstudio.com/download)
+
+### Docker
+
+- [Docker](https://www.docker.com/)
+
 ### Cloning Project
 
 ```bash
