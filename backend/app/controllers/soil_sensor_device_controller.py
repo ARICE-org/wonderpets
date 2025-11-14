@@ -22,6 +22,7 @@ def get_soil_sensor_devices(
     skip: int = 0, 
     limit: int = 100,
     status: Optional[bool] = None
+    
 ) -> List[models.SoilSensorDevice]:
     """Retrieve SoilSensorDevice records with optional pagination and filtering.
 

@@ -7,7 +7,7 @@ import uuid
 from app.dependencies import get_db
 from app.models.soil_sensor_device import SoilSensorDevice as SoilSensorDeviceModel
 from app.schemas.soil_sensor_device import SoilSensorDevice, SoilSensorDeviceCreate, SoilSensorDeviceUpdate
-from app.controllers.soil_sensor_device import get_soil_sensor_device, get_soil_sensor_devices, create_soil_sensor_device, update_soil_sensor_device, delete_soil_sensor_device
+from app.controllers.soil_sensor_device_controller import get_soil_sensor_device, get_soil_sensor_devices, create_soil_sensor_device, update_soil_sensor_device, delete_soil_sensor_device
 
 router = APIRouter(
     prefix="/sensors",
@@ -70,8 +70,7 @@ def list_soil_sensors(
         db, 
         skip=skip, 
         limit=limit, 
-        status=status,
-        search=search
+        status=status
     )
 
 @router.put(
@@ -119,9 +118,3 @@ def delete_soil_sensor(
         )
     delete_soil_sensor_device(db=db, db_sensor=db_sensor)
     return None
-
-
-
-# def get_soil_sensor_device(db: Session, sensor_id: uuid.UUID) -> Optional[models.SoilSensorDevice]:
-#     """Get a single soil sensor device by ID"""
-#     return db.query(models.SoilSensorDevice).filter(models.SoilSensorDevice.sensor_id == sensor_id).first()
