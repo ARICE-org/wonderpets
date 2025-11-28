@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "expo": "^54.0.25",
+    "install": "^0.13.0",
+    "lucide-react-native": "^0.553.0",
+    "npm": "^11.6.2",
+    "react-dom": "19.1.0",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-svg": "^15.15.0",
+    "react-native-web": "^0.21.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
+  }
+}
