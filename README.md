@@ -111,7 +111,7 @@ For development mode
       ```
    3. Run and Build frontend service
       ```bash
-      npm expo start
+      npx expo start
       ```
 
 [//]: # "### Running Scripts "
