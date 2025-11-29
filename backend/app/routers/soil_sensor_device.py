@@ -1,3 +1,4 @@
+from app.packages.decorators.search_helpers import searchable
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -6,7 +7,7 @@ import uuid
 from app.dependencies import get_db
 from app.models.soil_sensor_device import SoilSensorDevice as SoilSensorDeviceModel
 from app.schemas.soil_sensor_device import SoilSensorDevice, SoilSensorDeviceCreate, SoilSensorDeviceUpdate
-from app.controllers.soil_sensor_device import get_soil_sensor_device, get_soil_sensor_devices, create_soil_sensor_device, update_soil_sensor_device, delete_soil_sensor_device
+from app.controllers.soil_sensor_device_controller import get_soil_sensor_device, get_soil_sensor_devices, create_soil_sensor_device, update_soil_sensor_device, delete_soil_sensor_device
 
 router = APIRouter(
     prefix="/sensors",
@@ -54,11 +55,13 @@ def read_soil_sensor(
     response_model=List[SoilSensorDevice],
     summary="List all soil sensor devices"
 )
+@searchable(fields=["sensor_desc", "device_status"], mode="ilike", model=SoilSensorDeviceModel)
 def list_soil_sensors(
     skip: int = 0,
     limit: int = 100,
     status: bool = True,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    search: str = None
 ):
     """
     Retrieve a list of all soil sensor devices with optional status filtering.
