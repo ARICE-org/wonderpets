@@ -8,14 +8,14 @@ const StatusBar = () => (
     mt="$4"
     borderRadius="$sm"
     overflow="hidden"
-    space="sm"
+    gap="$1"
   >
     <Box flex={1} bg="$green500" borderRadius="$sm" />
     {/* Good */}
     <Box flex={0.5} bg="$orange500" borderRadius="$sm" />
     {/* Warning */}
     <Box flex={0.5} bg="$red500" borderRadius="$sm" />
-    {/* Bad */}{" "}
+    {/* Bad */}
   </HStack>
 );
 

@@ -22,11 +22,10 @@ export default function SoilSummary() {
         </Text>
         <TouchableOpacity onPress={() => console.log("Go to Soil Details")}>
           <Text fontSize="$2xl" fontWeight="$bold" color="$coolGray500">
-            →{" "}
+            →
           </Text>
         </TouchableOpacity>
       </HStack>
-      ```
       <MetricRow metrics={row1} />
       <MetricRow metrics={row2} />
       <StatusBar />
