@@ -11,7 +11,7 @@ export interface SoilMetric {
 }
 
 // Apply the interface to the data array
-export default const soilMetrics: SoilMetric[] = [
+export const soilMetrics: SoilMetric[] = [
   {
     id: "n",
     label: "Nitrogen",
