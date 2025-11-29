@@ -1,7 +1,6 @@
 // app/(tabs)/profile.tsx
 import React from "react";
 import { Box, Text, VStack } from "@gluestack-ui/themed";
-import ProfileAvatar from "../components/profile_ui/avatar";
 
 export default function ProfileScreen() {
   return (

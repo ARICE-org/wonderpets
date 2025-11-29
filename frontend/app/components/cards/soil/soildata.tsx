@@ -45,3 +45,5 @@ export const soilMetrics: SoilMetric[] = [
     color: "$red600",
   },
 ];
+
+export default soilMetrics;
