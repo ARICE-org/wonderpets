@@ -1,0 +1,5 @@
+# Placeholder for trained weather forecasting models
+# Model files will be saved here after training:
+# - weather_forecast_model.pkl (or .h5 for TensorFlow)
+# - prophet_model.json
+# - feature_scaler.pkl

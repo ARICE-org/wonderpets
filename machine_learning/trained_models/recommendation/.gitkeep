@@ -1,0 +1,5 @@
+# Placeholder for trained recommendation models
+# Model files will be saved here after training:
+# - rice_variety_model.pkl
+# - feature_scaler.pkl
+# - label_encoder.pkl

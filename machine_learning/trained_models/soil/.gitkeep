@@ -1,0 +1,6 @@
+# Placeholder for trained soil analysis models
+# Model files will be saved here after training:
+# - soil_health_model.pkl
+# - soil_forecast_model.pkl
+# - feature_scaler.pkl
+# - parameter_weights.json
