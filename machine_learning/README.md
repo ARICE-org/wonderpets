@@ -1,6 +1,6 @@
 # ARICE Machine Learning Service
 
-Machine Learning microservice for the ARICE (Automated Rice Information and Cultivation Expert) project.
+Machine Learning microservice for the ARICE project.
 
 ## Overview
 
