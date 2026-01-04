@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import Optional
 
 class Settings(BaseSettings):
     POSTGRES_USER: str
@@ -7,6 +8,10 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: int
     CORS_ORIGINS: str
+    
+    # ML Service Configuration
+    ML_SERVICE_URL: str = "http://localhost:8001"  # Default for local development
+    ML_SERVICE_TIMEOUT: int = 30  # Timeout in seconds
 
     class Config:
         env_file = "../.env"

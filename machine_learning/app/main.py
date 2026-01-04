@@ -50,7 +50,12 @@ async def models_status():
         "recommendation_model": {"loaded": False, "version": None},
         "weather_model": {"loaded": False, "version": None},
         "soil_health_model": {"loaded": False, "version": None},
-        "soil_forecast_model": {"loaded": False, "version": None}
+        "soil_forecast_model": {"loaded": False, "version": None},
+        "hybrid_soil_forecast_model": {
+            "loaded": False,
+            "version": None,
+            "description": "Hybrid model combining Rule-Based + ML for soil forecasting"
+        }
     }
 
 
