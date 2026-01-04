@@ -268,16 +268,14 @@ class SoilAnalysisService:
                 planting_date, request.forecast_horizon_days
             )
         
-        # Format response
+        # Format response (simplified - only hybrid values)
         return HybridForecastResponse(
             planting_date=forecast_result.get('planting_date', planting_date.strftime('%Y-%m-%d')),
             forecast_end_date=forecast_result.get('forecast_end_date', ''),
             forecast_interval_days=request.forecast_interval_days,
-            approach_used=request.approach,
+            approach="hybrid",
             detailed_forecast=forecast_result.get('detailed_forecast', []),
             weekly_summary=forecast_result.get('weekly_summary', []),
-            approach_comparison=forecast_result.get('approach_comparison', {}),
-            model_metrics=forecast_result.get('model_metrics'),
             model_version=self.hybrid_forecast_model.version if self.hybrid_forecast_model else "1.0",
             generated_at=datetime.now().isoformat()
         )
@@ -348,14 +346,11 @@ class SoilAnalysisService:
                 'season': season
             }
             
-            # Use baseline values
+            # Use baseline values (hybrid values only)
             for param in ['nitrogen_ppm', 'phosphorus_ppm', 'potassium_meq', 
                          'pH', 'soil_moisture_pct', 'organic_matter_pct']:
                 baseline_val = default_baseline[season][param]['mean']
                 row[param] = round(baseline_val, 2)
-                row[f'{param}_rule'] = round(baseline_val, 2)
-                row[f'{param}_ml'] = round(baseline_val, 2)
-                row[f'{param}_hybrid'] = round(baseline_val, 2)
             
             row['soil_health_score'] = 70.0
             row['health_category'] = 'Good'
@@ -365,9 +360,7 @@ class SoilAnalysisService:
             'planting_date': planting_date.strftime('%Y-%m-%d'),
             'forecast_end_date': (planting_date + timedelta(days=horizon_days)).strftime('%Y-%m-%d'),
             'detailed_forecast': forecasts,
-            'weekly_summary': [],
-            'approach_comparison': {},
-            'model_metrics': None
+            'weekly_summary': []
         }
     
     async def get_seasonal_forecast(

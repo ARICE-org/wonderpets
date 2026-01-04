@@ -176,14 +176,10 @@ class HybridForecastRequest(BaseModel):
         description="Forecast horizon (30-120 days)"
     )
     forecast_interval_days: int = Field(
-        default=3,
+        default=7,
         ge=1,
-        le=7,
+        le=14,
         description="Days between forecast points"
-    )
-    approach: str = Field(
-        default="hybrid",
-        description="Prediction approach: 'hybrid', 'rule_based', or 'pure_ml'"
     )
     
     class Config:
@@ -199,19 +195,9 @@ class HybridForecastRequest(BaseModel):
                 },
                 "planting_date": "2026-01-15",
                 "forecast_horizon_days": 90,
-                "forecast_interval_days": 3,
-                "approach": "hybrid"
+                "forecast_interval_days": 7
             }
         }
-
-
-class ApproachComparison(BaseModel):
-    """Comparison of predictions from different approaches."""
-    parameter: str = Field(..., description="Soil parameter name")
-    rule_based_avg: float = Field(..., description="Average rule-based prediction")
-    pure_ml_avg: float = Field(..., description="Average pure ML prediction")
-    hybrid_avg: float = Field(..., description="Average hybrid prediction")
-    ml_correction_avg: float = Field(..., description="Average ML correction applied")
 
 
 class DetailedForecastPoint(BaseModel):
@@ -243,33 +229,18 @@ class WeeklyHybridSummary(BaseModel):
     health_category: str = Field(..., description="Health category")
 
 
-class ModelMetrics(BaseModel):
-    """Training metrics for model evaluation."""
-    parameter: str = Field(..., description="Parameter name")
-    rule_based_r2: Optional[float] = Field(None, description="Rule-based test R²")
-    pure_ml_r2: Optional[float] = Field(None, description="Pure ML test R²")
-    hybrid_r2: Optional[float] = Field(None, description="Hybrid test R²")
-    hybrid_rmse: Optional[float] = Field(None, description="Hybrid test RMSE")
-
-
 class HybridForecastResponse(BaseModel):
-    """Response containing hybrid soil forecast with all approaches."""
+    """Response containing hybrid soil forecast."""
     planting_date: str = Field(..., description="Planting date")
     forecast_end_date: str = Field(..., description="Forecast end date")
     forecast_interval_days: int = Field(..., description="Days between forecast points")
-    approach_used: str = Field(..., description="Primary approach used")
+    approach: str = Field(default="hybrid", description="Approach used (always hybrid)")
     
     detailed_forecast: List[Dict[str, Any]] = Field(
         ..., description="Detailed daily/interval forecasts"
     )
     weekly_summary: List[Dict[str, Any]] = Field(
         ..., description="Weekly aggregated summaries"
-    )
-    approach_comparison: Dict[str, Any] = Field(
-        ..., description="Comparison of all three approaches"
-    )
-    model_metrics: Optional[Dict[str, Any]] = Field(
-        None, description="Training metrics if available"
     )
     
     model_version: str = Field(default="1.0", description="Model version")
@@ -280,8 +251,8 @@ class HybridForecastResponse(BaseModel):
             "example": {
                 "planting_date": "2026-01-15",
                 "forecast_end_date": "2026-04-15",
-                "forecast_interval_days": 3,
-                "approach_used": "hybrid",
+                "forecast_interval_days": 7,
+                "approach": "hybrid",
                 "detailed_forecast": [
                     {
                         "date": "2026-01-15",
@@ -297,15 +268,15 @@ class HybridForecastResponse(BaseModel):
                         "health_category": "Good"
                     }
                 ],
-                "weekly_summary": [],
-                "approach_comparison": {
-                    "nitrogen_ppm": {
-                        "rule_based_avg": 44.0,
-                        "pure_ml_avg": 46.5,
-                        "hybrid_avg": 45.2,
-                        "ml_correction_avg": 1.2
+                "weekly_summary": [
+                    {
+                        "week_number": 1,
+                        "season": "dry",
+                        "nitrogen_ppm": 45.0,
+                        "soil_health_score": 78.0,
+                        "health_category": "Good"
                     }
-                },
+                ],
                 "model_version": "1.0",
                 "generated_at": "2026-01-04T10:30:00"
             }
