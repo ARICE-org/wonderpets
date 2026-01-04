@@ -10,6 +10,7 @@ from app.routers.auth import router as auth_router
 from app.routers.soil_sensor_device import router as soil_sensor_router
 from app.routers.soil_data import router as soil_data_router
 from app.routers.weather import router as weather_router
+from app.routers.soil_forecast import router as soil_forecast_router
 from app.db import Base, engine
 import logging
 
@@ -40,6 +41,10 @@ tags_metadata = [
     {
         "name": "Soil Data",
         "description": "Endpoints for soil data operations.",
+    },
+    {
+        "name": "Soil Forecast",
+        "description": "Endpoints for soil forecast and analysis.",
     }
 ]
 
@@ -99,6 +104,7 @@ app.include_router(auth_router)
 app.include_router(soil_sensor_router)
 app.include_router(soil_data_router)
 app.include_router(weather_router)
+app.include_router(soil_forecast_router)
 
 @app.get("/")
 def read_root():
