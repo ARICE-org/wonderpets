@@ -1,13 +1,12 @@
 """
 Soil Analysis API Router
 
-Endpoints for soil health scoring, forecasting, and hybrid ML predictions.
+Endpoints for soil health scoring, hybrid forecasting, and forecast realignment.
 These endpoints are called by the Backend service, not directly by the Frontend.
 """
 
 import time
 from fastapi import APIRouter, HTTPException
-from typing import Optional
 
 from app.common import (
     logger,
@@ -15,7 +14,6 @@ from app.common import (
     log_request,
     log_response,
     log_ml_prediction,
-    ErrorCode,
     MLServiceError,
     ValidationError,
     ForecastError,
@@ -26,14 +24,10 @@ from app.common import (
 from app.schemas.soil import (
     SoilAnalysisRequest,
     SoilHealthResponse,
-    SoilForecastRequest,
-    SoilForecastResponse,
     HybridForecastRequest,
     HybridForecastResponse,
     RealignForecastRequest,
     RealignForecastResponse,
-    HealthScoreRequest,
-    HealthScoreResponse as MLHealthScoreResponse
 )
 from app.services.soil_analysis_service import SoilAnalysisService
 from app.services.forecast_realigner import forecast_realigner
@@ -106,68 +100,6 @@ async def get_detailed_health_score(request: SoilAnalysisRequest):
         raise HTTPException(status_code=500, detail=error_info)
 
 
-@router.post("/forecast", response_model=SoilForecastResponse)
-async def get_soil_forecast(request: SoilForecastRequest):
-    """
-    Get 3-month soil condition forecast for rice planting season.
-    
-    Args:
-        request: Forecast request with historical data and planting date
-    
-    Returns:
-        Seasonal forecast with weekly summaries and growth stage alignment
-    """
-    start_time = time.time()
-    log_request("/api/soil/forecast", "POST", {"request_type": "soil_forecast"})
-    
-    try:
-        response = await soil_service.forecast_season(request)
-        
-        duration_ms = (time.time() - start_time) * 1000
-        log_response("/api/soil/forecast", 200, duration_ms=duration_ms)
-        return response
-    except ValueError as e:
-        error_info = log_error(ValidationError(str(e)), {"endpoint": "/forecast"})
-        raise HTTPException(status_code=400, detail=error_info)
-    except MLServiceError as e:
-        error_info = log_error(e, {"endpoint": "/forecast"})
-        raise HTTPException(status_code=e.status_code, detail=error_info)
-    except Exception as e:
-        error_info = log_error(ForecastError(f"Forecast error: {str(e)}", "soil_forecast"), {"endpoint": "/forecast"})
-        raise HTTPException(status_code=500, detail=error_info)
-
-
-@router.post("/seasonal-forecast")
-async def get_seasonal_soil_forecast(request: SoilForecastRequest):
-    """
-    Get soil forecast aligned with rice growth stages.
-    
-    Args:
-        request: Forecast request with planting date
-    
-    Returns:
-        Forecast with growth stage timeline and stage-specific alerts
-    """
-    start_time = time.time()
-    log_request("/api/soil/seasonal-forecast", "POST", {"request_type": "seasonal_forecast"})
-    
-    try:
-        response = await soil_service.get_seasonal_forecast(request)
-        
-        duration_ms = (time.time() - start_time) * 1000
-        log_response("/api/soil/seasonal-forecast", 200, duration_ms=duration_ms)
-        return response
-    except ValueError as e:
-        error_info = log_error(ValidationError(str(e)), {"endpoint": "/seasonal-forecast"})
-        raise HTTPException(status_code=400, detail=error_info)
-    except MLServiceError as e:
-        error_info = log_error(e, {"endpoint": "/seasonal-forecast"})
-        raise HTTPException(status_code=e.status_code, detail=error_info)
-    except Exception as e:
-        error_info = log_error(ForecastError(f"Seasonal forecast error: {str(e)}", "seasonal"), {"endpoint": "/seasonal-forecast"})
-        raise HTTPException(status_code=500, detail=error_info)
-
-
 # =============================================================================
 # HYBRID FORECAST ENDPOINTS
 # =============================================================================
@@ -176,21 +108,20 @@ async def get_seasonal_soil_forecast(request: SoilForecastRequest):
 async def get_hybrid_forecast(request: HybridForecastRequest):
     """
     Get hybrid soil forecast combining Rule-Based and ML approaches.
-
+    
+    The hybrid approach combines soil science rules for baseline predictions
+    with ML corrections for improved accuracy. Only hybrid predictions are
+    returned (not separate rule-based or pure-ML values).
     
     Args:
         request: Hybrid forecast request with soil data and parameters
     
     Returns:
-        HybridForecastResponse with predictions from all three approaches:
-        - Rule-Based (soil science knowledge)
-        - Pure ML (Random Forest)
-        - Hybrid (Rule + ML residual correction)
+        HybridForecastResponse with hybrid predictions for soil parameters
     """
     start_time = time.time()
     log_request("/api/soil/hybrid-forecast", "POST", {
         "request_type": "hybrid_forecast",
-        "approach": request.approach,
         "forecast_horizon": request.forecast_horizon_days
     })
     
@@ -219,36 +150,9 @@ async def get_hybrid_forecast(request: HybridForecastRequest):
         raise HTTPException(status_code=500, detail=error_info)
 
 
-@router.post("/recommendations")
-async def get_soil_recommendations(request: SoilAnalysisRequest):
-    """
-    Get soil improvement recommendations based on current conditions.
-    
-    Args:
-        request: Soil analysis request
-    
-    Returns:
-        Prioritized recommendations with expected improvements
-    """
-    start_time = time.time()
-    log_request("/api/soil/recommendations", "POST", {"request_type": "recommendations"})
-    
-    try:
-        response = await soil_service.get_recommendations(request)
-        
-        duration_ms = (time.time() - start_time) * 1000
-        log_response("/api/soil/recommendations", 200, duration_ms=duration_ms)
-        return response
-    except ValueError as e:
-        error_info = log_error(ValidationError(str(e)), {"endpoint": "/recommendations"})
-        raise HTTPException(status_code=400, detail=error_info)
-    except MLServiceError as e:
-        error_info = log_error(e, {"endpoint": "/recommendations"})
-        raise HTTPException(status_code=e.status_code, detail=error_info)
-    except Exception as e:
-        error_info = log_error(AnalysisError(f"Recommendations error: {str(e)}"), {"endpoint": "/recommendations"})
-        raise HTTPException(status_code=500, detail=error_info)
-
+# =============================================================================
+# REALIGNMENT & STATUS ENDPOINTS
+# =============================================================================
 
 @router.get("/status")
 async def get_soil_service_status():
@@ -319,64 +223,6 @@ async def realign_forecast(request: RealignForecastRequest):
         raise HTTPException(status_code=e.status_code, detail=error_info)
     except Exception as e:
         error_info = log_error(RealignmentError(f"Realignment error: {str(e)}"), {"endpoint": "/realign-forecast", "week": request.current_week})
-        raise HTTPException(status_code=500, detail=error_info)
-
-
-@router.post("/health-score", response_model=MLHealthScoreResponse)
-async def calculate_health_score(request: HealthScoreRequest):
-    """
-    Calculate soil health score from provided data.
-    
-    This endpoint is called by the Backend to get a health score
-    without generating a full forecast.
-    
-    Args:
-        request: HealthScoreRequest with soil data
-    
-    Returns:
-        HealthScoreResponse with score and category
-    """
-    start_time = time.time()
-    log_request("/api/soil/health-score", "POST", {"request_type": "health_score"})
-    
-    try:
-        # Calculate health score
-        score = forecast_realigner._calculate_health_score(request.soil_data)
-        category = _get_health_category(score)
-        
-        # Calculate individual parameter scores
-        param_scores = {}
-        for param in forecast_realigner.TARGET_PARAMETERS:
-            value = forecast_realigner._extract_actual_value(request.soil_data, param)
-            if value is not None:
-                param_scores[param] = round(
-                    forecast_realigner._param_score(
-                        value,
-                        forecast_realigner.OPTIMAL_RANGES.get(param, {
-                            "min": 0, "max": 100, "optimal": 50
-                        }) if hasattr(forecast_realigner, 'OPTIMAL_RANGES') else {
-                            "min": 0, "max": 100, "optimal": 50
-                        }
-                    ) * 100, 1
-                )
-        
-        duration_ms = (time.time() - start_time) * 1000
-        logger.info(f"Health score calculated: score={score:.1f}, category={category}")
-        log_response("/api/soil/health-score", 200, duration_ms=duration_ms)
-        
-        return MLHealthScoreResponse(
-            health_score=score,
-            health_category=category,
-            parameter_scores=param_scores
-        )
-    except ValueError as e:
-        error_info = log_error(ValidationError(str(e)), {"endpoint": "/health-score"})
-        raise HTTPException(status_code=400, detail=error_info)
-    except MLServiceError as e:
-        error_info = log_error(e, {"endpoint": "/health-score"})
-        raise HTTPException(status_code=e.status_code, detail=error_info)
-    except Exception as e:
-        error_info = log_error(HealthScoreError(f"Health score error: {str(e)}"), {"endpoint": "/health-score"})
         raise HTTPException(status_code=500, detail=error_info)
 
 

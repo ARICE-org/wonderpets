@@ -467,8 +467,7 @@ class TestHybridForecastSchemas:
         request = HybridForecastRequest()
         
         assert request.forecast_horizon_days == 90
-        assert request.forecast_interval_days == 3
-        assert request.approach == "hybrid"
+        assert request.forecast_interval_days == 7
     
     def test_hybrid_forecast_request_validation(self):
         """Test HybridForecastRequest validates input."""
@@ -478,8 +477,7 @@ class TestHybridForecastSchemas:
         # Valid request
         request = HybridForecastRequest(
             forecast_horizon_days=60,
-            forecast_interval_days=5,
-            approach="rule_based"
+            forecast_interval_days=5
         )
         assert request.forecast_horizon_days == 60
         
@@ -488,31 +486,34 @@ class TestHybridForecastSchemas:
             HybridForecastRequest(forecast_horizon_days=10)
     
     def test_hybrid_forecast_response_structure(self):
-        """Test HybridForecastResponse structure."""
+        """Test HybridForecastResponse structure (hybrid values only)."""
         from app.schemas.soil import HybridForecastResponse
         from datetime import datetime
         
         response = HybridForecastResponse(
             planting_date="2026-01-15",
             forecast_end_date="2026-04-15",
-            forecast_interval_days=3,
-            approach_used="hybrid",
+            forecast_interval_days=7,
+            approach="hybrid",
             detailed_forecast=[
                 {
                     "date": "2026-01-15",
                     "week_number": 1,
                     "season": "dry",
                     "nitrogen_ppm": 45.2,
-                    "soil_health_score": 78.5
+                    "phosphorus_ppm": 18.5,
+                    "potassium_meq": 0.85,
+                    "pH": 6.3,
+                    "soil_moisture_pct": 32.1,
+                    "organic_matter_pct": 3.8,
+                    "soil_health_score": 78.5,
+                    "health_category": "Good"
                 }
             ],
             weekly_summary=[],
-            approach_comparison={
-                "nitrogen_ppm": {"rule_based_avg": 44.0, "hybrid_avg": 45.2}
-            },
             generated_at=datetime.now().isoformat()
         )
         
-        assert response.approach_used == "hybrid"
+        assert response.approach == "hybrid"
         assert len(response.detailed_forecast) == 1
-        assert response.forecast_interval_days == 3
+        assert response.forecast_interval_days == 7
