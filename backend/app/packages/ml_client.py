@@ -6,7 +6,7 @@ Frontend never uses this directly - all ML communication goes through Backend.
 """
 
 import httpx
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from datetime import date, datetime
 from pydantic import BaseModel
 from app.config.settings import settings
@@ -14,11 +14,37 @@ from app.config.settings import settings
 
 class MLForecastResponse(BaseModel):
     """Response from ML service forecast endpoints."""
-    health_score: float
-    health_category: str
-    forecast: Dict[str, Any]
-    weekly_summary: list
-    model_info: Optional[Dict[str, Any]] = None
+    planting_date: str
+    forecast_end_date: str
+    forecast_interval_days: int
+    approach: str = "hybrid"
+    detailed_forecast: List[Dict[str, Any]]
+    weekly_summary: List[Dict[str, Any]]
+    model_version: str = "1.0"
+    generated_at: str
+    
+    @property
+    def forecast(self) -> Dict[str, Any]:
+        """Provide forecast dict for backward compatibility."""
+        return {
+            "weekly_summary": self.weekly_summary,
+            "detailed_forecast": self.detailed_forecast
+        }
+    
+    @property
+    def health_score(self) -> float:
+        """Calculate health score from weekly summary."""
+        if self.weekly_summary:
+            scores = [w.get("soil_health_score", 70) for w in self.weekly_summary]
+            return sum(scores) / len(scores) if scores else 70.0
+        return 70.0
+    
+    @property
+    def health_category(self) -> str:
+        """Get health category from first week."""
+        if self.weekly_summary:
+            return self.weekly_summary[0].get("health_category", "Good")
+        return "Good"
 
 
 class MLHealthScoreResponse(BaseModel):
