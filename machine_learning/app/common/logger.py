@@ -281,10 +281,10 @@ def log_ml_prediction(
         confidence: Model confidence score (if applicable)
         duration_ms: Prediction duration in milliseconds
     """
-    log_message = f"{Colors.CYAN}🤖 ML PREDICTION{Colors.RESET} [{model_name}]"
+    log_message = f"{Colors.CYAN}ML PREDICTION{Colors.RESET} [{model_name}]"
     log_message += f"\n  Input: {input_summary}"
     log_message += f"\n  Output: {prediction_summary}"
-    
+                
     if confidence is not None:
         log_message += f"\n  Confidence: {confidence:.2%}"
     
