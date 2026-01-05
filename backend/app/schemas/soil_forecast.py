@@ -11,11 +11,6 @@ from datetime import datetime, date
 from uuid import UUID
 from enum import Enum
 
-
-# ============================================================================
-# Enums
-# ============================================================================
-
 class HealthCategory(str, Enum):
     """Soil health category based on score."""
     EXCELLENT = "Excellent"
@@ -37,11 +32,6 @@ class CorrectionStrategy(str, Enum):
     SHIFT = "SHIFT"
     DECAYING_SHIFT = "DECAYING_SHIFT"
     REFORECAST = "REFORECAST"
-
-
-# ============================================================================
-# Sensor Reading Schemas (Option B: Parsed Data)
-# ============================================================================
 
 class SensorReading(BaseModel):
     """Single sensor reading from IoT device."""
