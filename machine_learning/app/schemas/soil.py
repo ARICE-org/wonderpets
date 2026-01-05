@@ -1,8 +1,3 @@
-"""
-Soil Schemas
-
-Pydantic models for soil analysis API request/response validation.
-"""
 
 from pydantic import BaseModel, Field
 from typing import Any, Dict, List, Optional
@@ -152,11 +147,6 @@ class SoilOutlook(BaseModel):
     key_concerns: List[str] = Field(default=[], description="Key concerns")
     recommended_actions: List[str] = Field(default=[], description="Recommended actions")
 
-
-# =============================================================================
-# HYBRID FORECAST SCHEMAS
-# =============================================================================
-
 class HybridForecastRequest(BaseModel):
     """Request for hybrid soil forecast."""
     current_soil_data: Optional[SoilSensorData] = Field(
@@ -305,11 +295,6 @@ class SoilForecastResponse(BaseModel):
     )
     model_version: Optional[str] = Field(None, description="Model version used")
     generated_at: Optional[str] = Field(None, description="Timestamp of generation")
-
-
-# =============================================================================
-# FORECAST REALIGNMENT SCHEMAS (Backend → ML Service)
-# =============================================================================
 
 class RealignForecastRequest(BaseModel):
     """Request to realign an existing forecast with new sensor data."""

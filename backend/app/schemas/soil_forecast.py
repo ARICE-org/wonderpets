@@ -76,7 +76,7 @@ class UploadSensorDataRequest(BaseModel):
     Request to upload sensor readings (Option B: Parsed Data).
     Frontend parses the CSV and sends structured data.
     """
-    farm_id: UUID = Field(..., alias="farmId")
+    farmer_id: UUID = Field(..., alias="farmerId")
     sensor_id: Optional[UUID] = Field(None, alias="sensorId")
     readings: List[SensorReading]
     planting_date: date = Field(..., alias="plantingDate")
@@ -103,11 +103,6 @@ class UploadSensorDataRequest(BaseModel):
             }
         }
     }
-
-
-# ============================================================================
-# Aggregated Data Schemas
-# ============================================================================
 
 class ParameterStatistics(BaseModel):
     """Statistics for a single soil parameter."""
@@ -148,10 +143,6 @@ class AggregatedSoilData(BaseModel):
     }
 
 
-# ============================================================================
-# Deviation & Correction Schemas
-# ============================================================================
-
 class DeviationInfo(BaseModel):
     """Information about deviation between predicted and actual values."""
     predicted: float
@@ -163,11 +154,6 @@ class DeviationInfo(BaseModel):
     model_config = {
         "populate_by_name": True,
     }
-
-
-# ============================================================================
-# Forecast Schemas
-# ============================================================================
 
 class WeeklyForecast(BaseModel):
     """Forecast for a single week."""
@@ -192,7 +178,7 @@ class WeeklyForecast(BaseModel):
 class ForecastSummary(BaseModel):
     """Summary of the full forecast period."""
     forecast_id: UUID = Field(..., alias="forecastId")
-    farm_id: UUID = Field(..., alias="farmId")
+    farmer_id: UUID = Field(..., alias="farmerId")
     planting_date: date = Field(..., alias="plantingDate")
     forecast_start: date = Field(..., alias="forecastStart")
     forecast_end: date = Field(..., alias="forecastEnd")
@@ -206,11 +192,6 @@ class ForecastSummary(BaseModel):
     model_config = {
         "populate_by_name": True,
     }
-
-
-# ============================================================================
-# Recommendation Schemas
-# ============================================================================
 
 class RecommendationType(str, Enum):
     """Type of recommendation."""
@@ -252,17 +233,12 @@ class NextReadingRecommendation(BaseModel):
         "populate_by_name": True,
     }
 
-
-# ============================================================================
-# Response Schemas
-# ============================================================================
-
 class SoilAnalysisResponse(BaseModel):
     """
     Response after uploading sensor reading and generating/updating forecast.
     This is the main response the Frontend receives.
     """
-    status: str  # "new_forecast_generated" or "forecast_realigned"
+    status: str  
     health_score: float = Field(..., alias="healthScore")
     health_category: HealthCategory = Field(..., alias="healthCategory")
     
@@ -367,7 +343,7 @@ class ReadingHistoryItem(BaseModel):
 
 class ReadingHistoryResponse(BaseModel):
     """Response for reading history endpoint."""
-    farm_id: UUID = Field(..., alias="farmId")
+    farmer_id: UUID = Field(..., alias="farmerId")
     total_readings: int = Field(..., alias="totalReadings")
     readings: List[ReadingHistoryItem]
 

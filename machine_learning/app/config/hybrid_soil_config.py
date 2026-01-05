@@ -19,10 +19,6 @@ class HybridModelConfig:
     machine learning for improved accuracy and explainability.
     """
     
-    # ==========================================================================
-    # HYBRID ARCHITECTURE SETTINGS
-    # ==========================================================================
-    
     # Fusion method: "weighted_average", "stacking", "dynamic"
     fusion_method: str = "weighted_average"
     
@@ -36,9 +32,6 @@ class HybridModelConfig:
     # Below this confidence, rely more on rules
     confidence_threshold: float = 0.7
     
-    # ==========================================================================
-    # ML MODEL SETTINGS (Random Forest)
-    # ==========================================================================
     
     ml_model_type: str = "RandomForest"
     n_estimators: int = 100
@@ -47,10 +40,6 @@ class HybridModelConfig:
     min_samples_leaf: int = 5
     random_state: int = 42
     cv_folds: int = 5
-    
-    # ==========================================================================
-    # TARGET PARAMETERS
-    # ==========================================================================
     
     target_parameters: List[str] = field(default_factory=lambda: [
         'nitrogen_ppm',
@@ -61,17 +50,9 @@ class HybridModelConfig:
         'organic_matter_pct'
     ])
     
-    # ==========================================================================
-    # FORECAST SETTINGS
-    # ==========================================================================
-    
     default_forecast_horizon_days: int = 90
     default_forecast_interval_days: int = 3
     max_forecast_horizon_days: int = 120
-    
-    # ==========================================================================
-    # SEASONAL DEFINITIONS (Philippines)
-    # ==========================================================================
     
     dry_season_months: List[int] = field(default_factory=lambda: [12, 1, 2, 3, 4, 5])
     wet_season_months: List[int] = field(default_factory=lambda: [6, 7, 8, 9, 10, 11])
@@ -100,8 +81,8 @@ class SoilScienceRulesConfig:
     seasonal_rules: Dict[str, Dict] = field(default_factory=lambda: {
         'nitrogen_ppm': {
             'optimal_range': (40, 80),
-            'wet_change_pct': (-10, -15),  # Leaching during wet season
-            'dry_change_pct': (-5, -8),    # Volatilization during dry season
+            'wet_change_pct': (-10, -15),  
+            'dry_change_pct': (-5, -8),    
         },
         'phosphorus_ppm': {
             'optimal_range': (15, 30),
@@ -110,12 +91,12 @@ class SoilScienceRulesConfig:
         },
         'potassium_meq': {
             'optimal_range': (0.5, 1.5),
-            'wet_change_pct': (-8, -12),   # Leaching
+            'wet_change_pct': (-8, -12),   
             'dry_change_pct': (-3, -5),
         },
         'pH': {
             'optimal_range': (5.5, 7.0),
-            'wet_change_units': (-0.1, -0.3),  # Acidification in wet season
+            'wet_change_units': (-0.1, -0.3),  
             'dry_change_units': (0, 0.1),
         },
         'soil_moisture_pct': {
@@ -125,7 +106,7 @@ class SoilScienceRulesConfig:
         },
         'organic_matter_pct': {
             'optimal_range': (3, 5),
-            'wet_change_pct': (-3, -5),    # Faster decomposition
+            'wet_change_pct': (-3, -5),    
             'dry_change_pct': (-1, -2),
         }
     })

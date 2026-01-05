@@ -1,10 +1,3 @@
-"""
-ML Service Client Module
-
-HTTP client for Backend to communicate with ML Service.
-Frontend never uses this directly - all ML communication goes through Backend.
-"""
-
 import httpx
 from typing import Dict, Optional, Any, List
 from datetime import date, datetime
@@ -55,25 +48,8 @@ class MLHealthScoreResponse(BaseModel):
 
 
 class MLServiceClient:
-    """
-    HTTP client for Backend to communicate with ML Service.
-    Frontend never uses this directly.
-    
-    This client abstracts all communication with the ML service,
-    allowing the backend to:
-    1. Generate new forecasts
-    2. Realign existing forecasts
-    3. Calculate health scores
-    4. Check ML service health
-    """
     
     def __init__(self, base_url: Optional[str] = None):
-        """
-        Initialize the ML service client.
-        
-        Args:
-            base_url: Base URL for ML service. Defaults to ML_SERVICE_URL from settings.
-        """
         self.base_url = base_url or getattr(settings, 'ML_SERVICE_URL', 'http://localhost:8001')
         self.timeout = 30.0  # seconds
     

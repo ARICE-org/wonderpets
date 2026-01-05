@@ -1,14 +1,3 @@
-"""
-Soil Forecast Model
-
-Predicts soil conditions for the upcoming rice planting season (3 months / ~90-120 days).
-Forecasts include:
-- Nutrient level trends
-- pH level predictions
-- Moisture retention projections
-- Organic matter changes
-"""
-
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta
 import numpy as np

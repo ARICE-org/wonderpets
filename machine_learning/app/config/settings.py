@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     WEATHER_API_URL: str = ""
     
     # Model parameters
-    SOIL_FORECAST_HORIZON_DAYS: int = 90  # 3-month forecast for rice planting season
+    SOIL_FORECAST_HORIZON_DAYS: int = 90 
     
     class Config:
         env_file = ".env"
