@@ -27,14 +27,14 @@ const MetricItem = ({ label, value, unit, status }: MetricItemProps) => {
   }
 
   return (
-    <HStack gap="$2" alignItems="center" width="50%">
+    <HStack space="sm" alignItems="center" width="50%">
       <Center width={40} height={40} borderRadius="$full" bg={`${iconColor}20`}>
         <Text fontSize="$xl" fontWeight="$bold" color={iconColor}>
           {icon}
         </Text>
       </Center>
       <VStack>
-        <HStack alignItems="flex-end" gap="$1">
+        <HStack alignItems="flex-end">
           <Text fontSize="$xl" fontWeight="$bold" color={iconColor}>
             {value}
           </Text>

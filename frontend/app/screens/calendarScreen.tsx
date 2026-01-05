@@ -1,14 +1,101 @@
-import React from "react";
-import { Box, Text, VStack, HStack, Pressable } from "@gluestack-ui/themed";
+import React, { useState } from "react";
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  Pressable,
+  ScrollView,
+} from "@gluestack-ui/themed";
 import BaseCard from "../components/cards/baseCard";
+import { router } from "expo-router";
+
+const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+// Sample farming tasks
+const FARMING_TASKS: Record<string, string[]> = {
+  "2026-01-01": ["Apply 40kg/ha Urea", "Irrigate field at 6:00 AM"],
+  "2026-01-03": [
+    "Start weeding at 7:00 AM",
+    "Inspect for pests",
+    "Apply fertilizer",
+  ],
+  "2026-01-05": ["Check pest traps"],
+  "2026-01-09": ["Spray insecticide (Imidacloprid) at 5:30 AM"],
+  "2026-01-12": ["Fertilize seedlings"],
+  "2026-01-15": ["Monitor water levels"],
+  "2026-01-20": ["Harvest mature areas"],
+  "2026-01-31": ["Check irrigation channels"],
+};
 
 export default function CalendarScreen() {
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const firstDay = new Date(year, month, 1).getDay(); // Sunday=0
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // make Mon=0
+
+  const calendarDays: {
+    day: number;
+    isCurrentMonth: boolean;
+    fullDate: string;
+  }[] = [];
+
+  // previous month filler
+  for (let i = adjustedFirstDay - 1; i >= 0; i--) {
+    const day = daysInPrevMonth - i;
+    calendarDays.push({ day, isCurrentMonth: false, fullDate: "" });
+  }
+
+  // current month
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      day
+    ).padStart(2, "0")}`;
+    calendarDays.push({ day, isCurrentMonth: true, fullDate: dateStr });
+  }
+
+  // next month filler
+  while (calendarDays.length % 7 !== 0) {
+    calendarDays.push({
+      day: calendarDays.length - daysInMonth - adjustedFirstDay + 1,
+      isCurrentMonth: false,
+      fullDate: "",
+    });
+  }
+
+  const isToday = (item: {
+    day: number;
+    isCurrentMonth: boolean;
+    fullDate: string;
+  }) => {
+    return (
+      item.isCurrentMonth &&
+      item.fullDate ===
+        `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}-${String(today.getDate()).padStart(2, "0")}`
+    );
+  };
+
+  const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
   return (
-    <Box flex={1} bg="$white" px="$4" py="$6">
-      {/* Back */}
-      <Pressable mb="$2">
-        <Text fontSize="$md" color="$green600">
-          Back
+    <Box flex={1} bg="$white" px="$4" py="$4">
+      {/* Back Button */}
+      <Pressable mb="$4" onPress={() => router.back()}>
+        <Text color="$green600" fontSize="$lg">
+          ‹ Back
         </Text>
       </Pressable>
 
@@ -17,82 +104,126 @@ export default function CalendarScreen() {
         Farming Calendar
       </Text>
 
-      {/* Calendar Container Using BaseCard */}
-      <BaseCard>
-        <VStack>
-          {/* Month + Year */}
+      {/* Calendar */}
+      <BaseCard rounded="$2xl" p="$2">
+        <VStack space="md">
+          {/* Month Header */}
           <HStack justifyContent="space-between" alignItems="center">
-            <Pressable>
-              <Text fontSize="$xl"></Text>
+            <Pressable onPress={goToPrevMonth}>
+              <Text fontSize="$3xl" color="$green600" ml="$2">
+                ‹
+              </Text>
             </Pressable>
 
             <HStack alignItems="center">
               <Text fontSize="$lg" fontWeight="$semibold">
-                January
+                {currentDate.toLocaleString("default", { month: "long" })}
               </Text>
-
-              <Box px="$3" py="$1" bg="$green200" rounded="$md">
-                <Text fontSize="$md" fontWeight="$bold">
-                  2025
-                </Text>
+              <Box bg="$green200" px="$3" py="$1" rounded="$full">
+                <Text fontWeight="$bold">{year}</Text>
               </Box>
             </HStack>
 
-            <Pressable>
-              <Text fontSize="$xl"></Text>
+            <Pressable onPress={goToNextMonth}>
+              <Text fontSize="$3xl" color="$green600" mr="$2">
+                ›
+              </Text>
             </Pressable>
           </HStack>
 
           {/* Weekdays */}
-          <HStack justifyContent="space-between" px="$1">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => (
-              <Text key={i} fontSize="$sm" color="$coolGray500">
+          <HStack justifyContent="space-between">
+            {WEEK_DAYS.map((d) => (
+              <Text
+                key={d}
+                fontSize="$md"
+                color="$black"
+                fontWeight="$semibold"
+              >
                 {d}
               </Text>
             ))}
           </HStack>
 
-          {/* Dates Grid */}
+          {/* Dates */}
           <VStack>
-            {[
-              [30, 1, 2, 3, 4, 5, 6],
-              [7, 8, 9, 10, 11, 12, 13],
-              [14, 15, 16, 17, 18, 19, 20],
-              [21, 22, 23, 24, 25, 26, 27],
-              [28, 29, 30, 31, 1, 2, 3],
-            ].map((row, rowIndex) => (
-              <HStack
-                key={rowIndex}
-                justifyContent="space-between"
-                px="$1"
-                mb="$2"
-              >
-                {row.map((day, colIndex) => (
-                  <VStack key={colIndex} alignItems="center">
-                    <Text
-                      fontSize="$md"
-                      color={day === 31 ? "$green600" : "$black"}
-                      fontWeight={day === 31 ? "$bold" : "$normal"}
-                    >
-                      {day}
-                    </Text>
+            {Array.from({ length: calendarDays.length / 7 }).map(
+              (_, rowIndex) => (
+                <HStack key={rowIndex} justifyContent="space-between" mb="$4">
+                  {calendarDays
+                    .slice(rowIndex * 7, rowIndex * 7 + 7)
+                    .map((item, index) => {
+                      const hasTask =
+                        item.isCurrentMonth &&
+                        FARMING_TASKS[item.fullDate]?.length > 0;
+                      const selected = selectedDate === item.fullDate;
 
-                    {/* Dot */}
-                    <Box bg="red" w={4} h={4} rounded="$full" mt="$1" />
-                  </VStack>
-                ))}
-              </HStack>
-            ))}
+                      return (
+                        <VStack key={index} alignItems="center" w={40}>
+                          <Pressable
+                            onPress={() =>
+                              item.isCurrentMonth &&
+                              setSelectedDate(item.fullDate)
+                            }
+                          >
+                            <Box
+                              w={28}
+                              h={28}
+                              alignItems="center"
+                              justifyContent="center"
+                              rounded="$md"
+                              borderWidth={selected || isToday(item) ? 2 : 0}
+                              borderColor={selected ? "$red600" : "$green600"}
+                              bg={selected ? "$red100" : "transparent"}
+                            >
+                              <Text
+                                color={
+                                  item.isCurrentMonth
+                                    ? "$black"
+                                    : "$coolGray400"
+                                }
+                                fontWeight={isToday(item) ? "$bold" : "$normal"}
+                              >
+                                {item.day}
+                              </Text>
+                            </Box>
+
+                            {/* Task indicator */}
+                            {hasTask && (
+                              <Box
+                                mt="$1"
+                                w={selected ? 6 : 4}
+                                h={selected ? 6 : 4}
+                                bg={selected ? "$red400" : "$red600"}
+                                rounded="$full"
+                              />
+                            )}
+                          </Pressable>
+                        </VStack>
+                      );
+                    })}
+                </HStack>
+              )
+            )}
           </VStack>
         </VStack>
       </BaseCard>
 
-      {/* Tasks Section */}
-      <VStack mt="$4">
-        <Text>Apply 40kg/ha Urea on June 9, 2025</Text>
-        <Text>Start weeding at 7:00 AM instead of 2:00 PM</Text>
-        <Text>Spray insecticide on June 2, 2025, 5:30 AM</Text>
-      </VStack>
+      {/* Selected Day Tasks */}
+      {selectedDate && (
+        <BaseCard mt="$4" p="$4">
+          <Text fontSize="$lg" fontWeight="$bold" mb="$2">
+            Tasks for {selectedDate}:
+          </Text>
+          <ScrollView style={{ maxHeight: 150 }}>
+            {FARMING_TASKS[selectedDate]?.map((task, idx) => (
+              <Text key={idx} mb="$1">
+                • {task}
+              </Text>
+            )) || <Text>No tasks for this day.</Text>}
+          </ScrollView>
+        </BaseCard>
+      )}
     </Box>
   );
 }

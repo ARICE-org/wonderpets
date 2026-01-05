@@ -7,6 +7,9 @@ const forecastData = [
   { day: "TUE", temp: "31°C", wind: "12.0 km/h" },
   { day: "WED", temp: "29°C", wind: "11.5 km/h" },
   { day: "THU", temp: "30°C", wind: "9.3 km/h" },
+  { day: "FRI", temp: "31°C", wind: "12.0 km/h" },
+  { day: "SAT", temp: "29°C", wind: "11.5 km/h" },
+  { day: "SUN", temp: "30°C", wind: "9.3 km/h" },
 ];
 
 export default function WeatherForecast() {
@@ -34,7 +37,6 @@ export default function WeatherForecast() {
               day={day.day}
               temperature={day.temp}
               wind={day.wind}
-              // Do NOT pass icon if you don't have one
             />
           ))}
         </HStack>
