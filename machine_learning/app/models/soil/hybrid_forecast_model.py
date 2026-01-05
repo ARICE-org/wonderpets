@@ -736,7 +736,6 @@ class HybridSoilForecastModel(BaseMLModel):
         return np.array(data)
     
     def get_approach_explanation(self) -> str:
-        """Return explanation of the hybrid approach for thesis."""
         return """
 HYBRID MODEL ARCHITECTURE
 =========================
