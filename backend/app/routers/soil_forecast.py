@@ -44,9 +44,6 @@ router = APIRouter(
     - Personalized recommendations
     - Alerts for critical conditions
     - Next reading recommendation
-    
-    If an active forecast exists for the farm/planting date, it will be realigned
-    based on the new data. Otherwise, a new forecast is generated.
     """
 )
 async def upload_sensor_readings(
@@ -55,16 +52,6 @@ async def upload_sensor_readings(
 ) -> SoilAnalysisResponse:
     """
     Upload sensor readings and get updated forecast.
-    
-    This is the main endpoint for soil analysis. The frontend parses
-    the CSV from the IoT sensor and sends structured data here.
-    
-    The backend handles:
-    1. Data validation and aggregation
-    2. Storage in database
-    3. Communication with ML service
-    4. Forecast generation/realignment
-    5. Recommendation generation
     """
     try:
         response = await soil_forecast_controller.process_sensor_reading(
@@ -85,71 +72,71 @@ async def upload_sensor_readings(
 
 
 @router.get(
-    "/forecast/{farm_id}",
+    "/forecast/{farmer_id}",
     response_model=GetForecastResponse,
-    summary="Get current forecast for a farm",
+    summary="Get current forecast for a farmer",
     description="""
-    Retrieve the current active forecast for a farm.
+    Retrieve the current active forecast for a farmer.
     Returns the full weekly forecast, health score, and next reading recommendation.
     """
 )
 async def get_forecast(
-    farm_id: UUID,
+    farmer_id: UUID,
     db: Session = Depends(get_db),
 ) -> GetForecastResponse:
-    """Get current forecast for a farm."""
-    result = await soil_forecast_controller.get_forecast(db=db, farm_id=farm_id)
+    """Get current forecast for a farmer."""
+    result = await soil_forecast_controller.get_forecast(db=db, farm_id=farmer_id)
     
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No forecast found for farm {farm_id}"
+            detail=f"No forecast found for farmer {farmer_id}"
         )
     
     return result
 
 
 @router.get(
-    "/health/{farm_id}",
+    "/health/{farmer_id}",
     response_model=HealthScoreResponse,
-    summary="Get current health score for a farm",
+    summary="Get current health score for a farmer",
     description="""
-    Get the most recent soil health score for a farm based on the latest reading.
+    Get the most recent soil health score for a farmer based on the latest reading.
     """
 )
 async def get_health_score(
-    farm_id: UUID,
+    farmer_id: UUID,
     db: Session = Depends(get_db),
 ) -> HealthScoreResponse:
     """Get current health score for a farm."""
-    result = await soil_forecast_controller.get_health_score(db=db, farm_id=farm_id)
+    result = await soil_forecast_controller.get_health_score(db=db, farm_id=farmer_id)
     
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No soil data found for farm {farm_id}"
+            detail=f"No soil data found for farm {farmer_id}"
         )
     
     return result
 
 
 @router.get(
-    "/history/{farm_id}",
+    "/history/{farmer_id}",
     response_model=ReadingHistoryResponse,
-    summary="Get reading history for a farm",
+    summary="Get reading history for a farmer",
     description="""
-    Get historical sensor readings for a farm.
+    Get historical sensor readings for a farmer.
     Useful for viewing trends and past data.
     """
 )
 async def get_reading_history(
-    farm_id: UUID,
+    farmer_id: UUID,
     limit: int = 50,
     db: Session = Depends(get_db),
 ) -> ReadingHistoryResponse:
     """Get reading history for a farm."""
     return await soil_forecast_controller.get_reading_history(
         db=db,
-        farm_id=farm_id,
+        farm_id=farmer_id,
         limit=limit
     )

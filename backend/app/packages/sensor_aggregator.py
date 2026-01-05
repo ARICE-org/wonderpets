@@ -151,7 +151,7 @@ class SensorDataAggregator:
         
         # Simple linear regression slope calculation
         n = len(values)
-        x_mean = (n - 1) / 2  # Mean of indices 0, 1, 2, ..., n-1
+        x_mean = (n - 1) / 2 
         y_mean = statistics.mean(values)
         
         numerator = sum((i - x_mean) * (values[i] - y_mean) for i in range(n))
@@ -208,6 +208,4 @@ class SensorDataAggregator:
             "historical_readings": historical_readings or []
         }
 
-
-# Singleton instance for use across the application
 sensor_aggregator = SensorDataAggregator()

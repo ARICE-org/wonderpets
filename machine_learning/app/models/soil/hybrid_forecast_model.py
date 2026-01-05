@@ -1,19 +1,3 @@
-"""
-Hybrid Soil Forecast Model
-
-Combines Rule-Based Expert System with Machine Learning for soil forecasting.
-
-Architecture:
-1. Rule-Based Layer: Applies soil science knowledge (seasonal effects, literature rules)
-2. ML Residual Layer: Learns unexplained patterns from historical data
-3. Fusion Layer: Weighted combination - Final = Rule-Based + ML_Correction
-
-This hybrid approach provides:
-- Explainability from rule-based predictions
-- Accuracy improvements from ML pattern detection
-- Robustness when ML fails, rules still provide reasonable baseline
-"""
-
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import numpy as np
@@ -175,14 +159,6 @@ class SoilScienceRules:
 
 
 class HybridSoilForecastModel(BaseMLModel):
-    """
-    Hybrid Model combining Rule-Based Expert System with Machine Learning.
-    
-    This is the core contribution for the thesis - a hybrid approach that:
-    1. Uses soil science rules for baseline predictions (explainability)
-    2. Applies ML to learn residuals/corrections (accuracy)
-    3. Combines both for robust and interpretable forecasts
-    """
     
     TARGET_PARAMETERS = [
         'nitrogen_ppm', 'phosphorus_ppm', 'potassium_meq',
@@ -293,22 +269,6 @@ class HybridSoilForecastModel(BaseMLModel):
         target_params: Optional[List[str]] = None,
         **kwargs
     ) -> Dict[str, Any]:
-        """
-        Train hybrid models for soil forecasting.
-        
-        Trains three approaches:
-        1. Pure Rule-Based (no training, uses domain knowledge)
-        2. Pure ML (Random Forest on raw features)
-        3. Hybrid (ML learns residuals from rule-based predictions)
-        
-        Args:
-            df: DataFrame with soil time series data
-            target_params: Parameters to forecast (defaults to all)
-            **kwargs: Additional training parameters
-            
-        Returns:
-            Training metrics and comparison results
-        """
         from sklearn.model_selection import TimeSeriesSplit, cross_val_score
         from sklearn.ensemble import RandomForestRegressor
         from sklearn.preprocessing import StandardScaler

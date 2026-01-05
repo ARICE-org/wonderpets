@@ -99,11 +99,6 @@ async def get_detailed_health_score(request: SoilAnalysisRequest):
         error_info = log_error(HealthScoreError(f"Health score error: {str(e)}"), {"endpoint": "/health-score-detailed"})
         raise HTTPException(status_code=500, detail=error_info)
 
-
-# =============================================================================
-# HYBRID FORECAST ENDPOINTS
-# =============================================================================
-
 @router.post("/hybrid-forecast", response_model=HybridForecastResponse)
 async def get_hybrid_forecast(request: HybridForecastRequest):
     """
@@ -148,11 +143,6 @@ async def get_hybrid_forecast(request: HybridForecastRequest):
     except Exception as e:
         error_info = log_error(ForecastError(f"Hybrid forecast error: {str(e)}", "hybrid"), {"endpoint": "/hybrid-forecast"})
         raise HTTPException(status_code=500, detail=error_info)
-
-
-# =============================================================================
-# REALIGNMENT & STATUS ENDPOINTS
-# =============================================================================
 
 @router.get("/status")
 async def get_soil_service_status():
