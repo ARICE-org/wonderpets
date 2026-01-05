@@ -86,7 +86,7 @@ class UploadSensorDataRequest(BaseModel):
         "populate_by_name": True,
         "json_schema_extra": {
             "example": {
-                "farmId": "123e4567-e89b-12d3-a456-426614174000",
+                "farmerId": "123e4567-e89b-12d3-a456-426614174000",
                 "sensorId": "223e4567-e89b-12d3-a456-426614174001",
                 "readings": [
                     {
