@@ -1,6 +1,32 @@
-import React from "react";
-import { Box, Text, VStack, HStack, Pressable } from "@gluestack-ui/themed";
+import React, { useState } from "react";
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  Pressable,
+  ScrollView,
+} from "@gluestack-ui/themed";
 import BaseCard from "../components/cards/baseCard";
+import { router } from "expo-router";
+
+const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+// Sample farming tasks
+const FARMING_TASKS: Record<string, string[]> = {
+  "2026-01-01": ["Apply 40kg/ha Urea", "Irrigate field at 6:00 AM"],
+  "2026-01-03": [
+    "Start weeding at 7:00 AM",
+    "Inspect for pests",
+    "Apply fertilizer",
+  ],
+  "2026-01-05": ["Check pest traps"],
+  "2026-01-09": ["Spray insecticide (Imidacloprid) at 5:30 AM"],
+  "2026-01-12": ["Fertilize seedlings"],
+  "2026-01-15": ["Monitor water levels"],
+  "2026-01-20": ["Harvest mature areas"],
+  "2026-01-31": ["Check irrigation channels"],
+};
 
 export default function CalendarScreen() {
   return (

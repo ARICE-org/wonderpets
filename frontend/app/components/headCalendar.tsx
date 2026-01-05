@@ -111,8 +111,16 @@ const Header = () => {
               {currentMonth}
             </Text>
             <Box>
-              <Ionicons name="notifications-outline" size={24} color="black" />
-              {/* Red dot for notification */}
+              <Pressable
+                onPress={() => router.navigate("/screens/notificationScreen")}
+              >
+                <Ionicons
+                  name="notifications-outline"
+                  size={24}
+                  color="black"
+                />
+              </Pressable>
+
               <Box
                 position="absolute"
                 top={-2}

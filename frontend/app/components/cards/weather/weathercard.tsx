@@ -1,12 +1,13 @@
 import React from "react";
-import { Box, Text, Image } from "@gluestack-ui/themed";
+import { Box, Text, Image, VStack } from "@gluestack-ui/themed";
 import BaseCard from "../baseCard";
 
 interface WeatherCardProps {
   day: string;
   temperature: string;
   wind: string;
-  icon?: any; // optional, can be a require() image or undefined
+  icon?: any;
+  isToday?: boolean;
 }
 
 export default function WeatherCard({
@@ -14,28 +15,48 @@ export default function WeatherCard({
   temperature,
   wind,
   icon,
+  isToday = false,
 }: WeatherCardProps) {
   return (
     <BaseCard
-      w={110}
-      h={160}
+      w={100}
+      h={150}
       mx="$1"
-      p="$3"
-      rounded="$lg"
-      bg="$coolGray100"
+      p="$0"
+      rounded="$2xl"
+      borderWidth={0.5}
+      borderColor={isToday ? "#34E0A1" : "black"}
+      bg="$white"
       alignItems="center"
+      overflow="hidden"
     >
-      <Box bg="#00C37D" px="$3" py="$1" rounded="$md" mb="$2">
+      {/* Top green header */}
+      <Box w="100%" py="$3" bg="#34E0A1" alignItems="center">
         <Text fontSize="$sm" fontWeight="$bold" color="$white">
           {day}
         </Text>
       </Box>
-      <Text fontSize="$xl" fontWeight="$bold" color="$black">
-        {temperature}
-      </Text>
-      {/* Render icon only if it exists */}
-      {icon && <Image source={icon} alt="weather-icon" w={40} h={40} mt="$1" />}
-      <Text mt="$1" fontSize="$xs" color="$coolGray600">
+
+      {/* Content */}
+      <VStack flex={1} alignItems="center" justifyContent="center">
+        <Text mt="$2" fontSize="$xl" fontWeight="$bold" color="#00C37D">
+          {temperature}
+        </Text>
+
+        {icon && (
+          <Image
+            source={icon}
+            alt="weather-icon"
+            w={45}
+            h={45}
+            my="$2"
+            resizeMode="contain"
+          />
+        )}
+      </VStack>
+
+      {/* Bottom wind text */}
+      <Text mb="$2" fontSize="$xs" color="#00C37D">
         {wind}
       </Text>
     </BaseCard>
