@@ -73,50 +73,18 @@ def train_weather_model(data_source: str, data_path: str = None):
     return metrics
 
 
-def train_soil_health_model(data_source: str, data_path: str = None):
-    """Train the soil health scoring model."""
-    from train_soil_health import SoilHealthModelTrainer
+def train_hybrid_soil_model(data_path: str = None):
+    """Train the hybrid soil forecast model."""
+    from train_hybrid_soil import main as train_hybrid_main
     
     logger.info("\n" + "=" * 60)
-    logger.info("TRAINING: Soil Health Scoring Model")
+    logger.info("TRAINING: Hybrid Soil Forecast Model")
     logger.info("=" * 60)
     
-    trainer = SoilHealthModelTrainer()
+    # train_hybrid_soil handles its own data loading
+    metrics = train_hybrid_main(data_path)
     
-    if data_source == 'database':
-        df = trainer.load_data_from_database()
-    else:
-        df = trainer.load_data_from_csv(data_path)
-    
-    metrics = trainer.train_yield_predictor(df)
-    trainer.optimize_weights(df)
-    correlations = trainer.validate_health_score(df)
-    trainer.save_model(metrics, correlations)
-    
-    return {**metrics, **correlations}
-
-
-def train_soil_forecast_model(data_source: str, data_path: str = None):
-    """Train the soil 3-month forecast model."""
-    from train_soil_forecast import SoilForecastModelTrainer
-    
-    logger.info("\n" + "=" * 60)
-    logger.info("TRAINING: Soil 3-Month Forecast Model")
-    logger.info("=" * 60)
-    
-    trainer = SoilForecastModelTrainer()
-    
-    if data_source == 'database':
-        df = trainer.load_data_from_database()
-    else:
-        df = trainer.load_data_from_csv(data_path)
-    
-    df = trainer.create_features(df)
-    X, y, target_cols = trainer.prepare_training_data(df, horizon=90)
-    metrics = trainer.train(X, y, target_cols)
-    trainer.save_model(metrics, target_cols)
-    
-    return metrics
+    return metrics if metrics else {"status": "completed"}
 
 
 def main():
@@ -138,14 +106,9 @@ def main():
         help='Skip training weather model'
     )
     parser.add_argument(
-        '--skip-soil-health',
+        '--skip-hybrid-soil',
         action='store_true',
-        help='Skip training soil health model'
-    )
-    parser.add_argument(
-        '--skip-soil-forecast',
-        action='store_true',
-        help='Skip training soil forecast model'
+        help='Skip training hybrid soil forecast model'
     )
     
     args = parser.parse_args()
@@ -168,13 +131,9 @@ def main():
         if not args.skip_weather:
             all_metrics['weather'] = train_weather_model(args.data_source)
         
-        # Train soil health model
-        if not args.skip_soil_health:
-            all_metrics['soil_health'] = train_soil_health_model(args.data_source)
-        
-        # Train soil forecast model
-        if not args.skip_soil_forecast:
-            all_metrics['soil_forecast'] = train_soil_forecast_model(args.data_source)
+        # Train hybrid soil forecast model
+        if not args.skip_hybrid_soil:
+            all_metrics['hybrid_soil'] = train_hybrid_soil_model()
         
     except Exception as e:
         logger.error(f"Training failed: {e}")

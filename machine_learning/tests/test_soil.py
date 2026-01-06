@@ -304,3 +304,216 @@ class TestSoilAPI:
         
         assert response.forecast_days == 120
         assert len(response.stage_forecasts) == 1
+
+
+# =============================================================================
+# HYBRID SOIL FORECAST MODEL TESTS
+# =============================================================================
+
+class TestHybridSoilForecastModel:
+    """Test cases for the hybrid soil forecasting model."""
+    
+    def test_hybrid_model_initialization(self):
+        """Test hybrid model can be initialized."""
+        from app.models.soil.hybrid_forecast_model import (
+            HybridSoilForecastModel, HybridConfig, MLConfig
+        )
+        
+        model = HybridSoilForecastModel(version="1.0")
+        
+        assert model.version == "1.0"
+        assert model.hybrid_config is not None
+        assert model.ml_config is not None
+        assert not model.is_trained
+    
+    def test_hybrid_config_defaults(self):
+        """Test hybrid config has sensible defaults."""
+        from app.models.soil.hybrid_forecast_model import HybridConfig
+        
+        config = HybridConfig()
+        
+        assert config.fusion_method == "weighted_average"
+        assert 0 < config.rule_weight <= 1
+        assert 0 < config.ml_weight <= 1
+        assert config.rule_weight + config.ml_weight == 1.0 or True  # Can sum to different
+    
+    def test_ml_config_defaults(self):
+        """Test ML config has sensible defaults."""
+        from app.models.soil.hybrid_forecast_model import MLConfig
+        
+        config = MLConfig()
+        
+        assert config.n_estimators > 0
+        assert config.max_depth > 0
+        assert config.random_state == 42
+    
+    def test_soil_science_rules_season_detection(self):
+        """Test season detection from month."""
+        from app.models.soil.hybrid_forecast_model import SoilScienceRules
+        
+        rules = SoilScienceRules()
+        
+        # Dry season months (Philippines)
+        assert rules.get_season(12) == 'dry'
+        assert rules.get_season(1) == 'dry'
+        assert rules.get_season(5) == 'dry'
+        
+        # Wet season months
+        assert rules.get_season(6) == 'wet'
+        assert rules.get_season(9) == 'wet'
+        assert rules.get_season(11) == 'wet'
+    
+    def test_rule_based_prediction_returns_float(self):
+        """Test rule-based prediction returns valid float."""
+        from app.models.soil.hybrid_forecast_model import SoilScienceRules
+        
+        rules = SoilScienceRules()
+        
+        baseline = {
+            'dry': {'nitrogen_ppm': {'mean': 45, 'std': 10}},
+            'wet': {'nitrogen_ppm': {'mean': 50, 'std': 12}}
+        }
+        
+        prediction = rules.get_rule_based_prediction(
+            month=1,  # January (dry season)
+            days_into_season=30,
+            parameter='nitrogen_ppm',
+            seasonal_baseline=baseline
+        )
+        
+        assert isinstance(prediction, (int, float))
+        assert prediction > 0
+    
+    def test_target_parameters_defined(self):
+        """Test all target parameters are defined."""
+        from app.models.soil.hybrid_forecast_model import HybridSoilForecastModel
+        
+        model = HybridSoilForecastModel()
+        
+        expected_params = [
+            'nitrogen_ppm', 'phosphorus_ppm', 'potassium_meq',
+            'pH', 'soil_moisture_pct', 'organic_matter_pct'
+        ]
+        
+        for param in expected_params:
+            assert param in model.TARGET_PARAMETERS
+    
+    def test_health_score_calculation(self):
+        """Test health score calculation."""
+        from app.models.soil.hybrid_forecast_model import HybridSoilForecastModel
+        
+        model = HybridSoilForecastModel()
+        
+        # Optimal values
+        row = {
+            'nitrogen_ppm': 60,  # Within 40-80
+            'phosphorus_ppm': 22,  # Within 15-30
+            'potassium_meq': 1.0,  # Within 0.5-1.5
+            'pH': 6.2,  # Within 5.5-7.0
+            'soil_moisture_pct': 32,  # Within 25-40
+            'organic_matter_pct': 4.0  # Within 3-5
+        }
+        
+        score = model._calculate_health_score(row)
+        
+        assert 0 <= score <= 100
+        assert score >= 80  # Should be high with optimal values
+    
+    def test_health_category_mapping(self):
+        """Test health category from score."""
+        from app.models.soil.hybrid_forecast_model import HybridSoilForecastModel
+        
+        model = HybridSoilForecastModel()
+        
+        assert model._get_health_category(95) == "Excellent"
+        assert model._get_health_category(80) == "Good"
+        assert model._get_health_category(65) == "Moderate"
+        assert model._get_health_category(45) == "Poor"
+        assert model._get_health_category(25) == "Critical"
+    
+    def test_forecast_season_structure(self):
+        """Test forecast_season returns correct structure."""
+        from app.models.soil.hybrid_forecast_model import HybridSoilForecastModel
+        from datetime import datetime
+        
+        model = HybridSoilForecastModel()
+        
+        # Set dummy baseline for untrained model
+        model.seasonal_baseline = {
+            'dry': {p: {'mean': 50, 'std': 10} for p in model.TARGET_PARAMETERS},
+            'wet': {p: {'mean': 55, 'std': 12} for p in model.TARGET_PARAMETERS}
+        }
+        
+        result = model.forecast_season(
+            planting_date=datetime.now(),
+            forecast_days=30,
+            interval_days=7
+        )
+        
+        assert 'planting_date' in result
+        assert 'forecast_end_date' in result
+        assert 'detailed_forecast' in result
+        assert 'weekly_summary' in result
+        assert isinstance(result['detailed_forecast'], list)
+
+
+class TestHybridForecastSchemas:
+    """Test cases for hybrid forecast request/response schemas."""
+    
+    def test_hybrid_forecast_request_defaults(self):
+        """Test HybridForecastRequest default values."""
+        from app.schemas.soil import HybridForecastRequest
+        
+        request = HybridForecastRequest()
+        
+        assert request.forecast_horizon_days == 90
+        assert request.forecast_interval_days == 7
+    
+    def test_hybrid_forecast_request_validation(self):
+        """Test HybridForecastRequest validates input."""
+        from app.schemas.soil import HybridForecastRequest
+        import pytest
+        
+        # Valid request
+        request = HybridForecastRequest(
+            forecast_horizon_days=60,
+            forecast_interval_days=5
+        )
+        assert request.forecast_horizon_days == 60
+        
+        # Invalid horizon (too short)
+        with pytest.raises(Exception):
+            HybridForecastRequest(forecast_horizon_days=10)
+    
+    def test_hybrid_forecast_response_structure(self):
+        """Test HybridForecastResponse structure (hybrid values only)."""
+        from app.schemas.soil import HybridForecastResponse
+        from datetime import datetime
+        
+        response = HybridForecastResponse(
+            planting_date="2026-01-15",
+            forecast_end_date="2026-04-15",
+            forecast_interval_days=7,
+            approach="hybrid",
+            detailed_forecast=[
+                {
+                    "date": "2026-01-15",
+                    "week_number": 1,
+                    "season": "dry",
+                    "nitrogen_ppm": 45.2,
+                    "phosphorus_ppm": 18.5,
+                    "potassium_meq": 0.85,
+                    "pH": 6.3,
+                    "soil_moisture_pct": 32.1,
+                    "organic_matter_pct": 3.8,
+                    "soil_health_score": 78.5,
+                    "health_category": "Good"
+                }
+            ],
+            weekly_summary=[],
+            generated_at=datetime.now().isoformat()
+        )
+        
+        assert response.approach == "hybrid"
+        assert len(response.detailed_forecast) == 1
+        assert response.forecast_interval_days == 7

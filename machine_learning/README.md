@@ -1,14 +1,26 @@
 # ARICE Machine Learning Service
 
-Machine Learning microservice for the ARICE project.
+Machine Learning microservice for the ARICE (Agricultural Rice Information and Consulting Expert) project.
 
 ## Overview
 
-This service provides three core ML capabilities:
+This service provides ML capabilities for rice farming:
 
-1. **Rice Variety Recommendation** - Suggests optimal rice varieties based on soil conditions and weather patterns
-2. **Weather Forecasting** - Predicts temperature, rainfall, and humidity for farming planning
-3. **Soil Health Analysis** - Scores soil health (0-100) and provides 3-month forecasts aligned with rice growth stages
+1. **Soil Health Analysis** - Scores soil health (0-100) with detailed parameter breakdown
+2. **Hybrid Soil Forecasting** - 3-month forecasts combining Rule-Based soil science with ML corrections
+3. **Forecast Realignment** - Adjusts predictions when new sensor data arrives
+4. **Rice Variety Recommendation** - Suggests optimal rice varieties based on conditions
+5. **Weather Forecasting** - Predicts temperature, rainfall, and humidity
+
+## Architecture
+
+```
+Frontend (Expo) ←→ Backend (FastAPI:8000) ←→ ML Service (FastAPI:8001)
+                         ↓
+                   PostgreSQL DB
+```
+
+The ML Service is called only by the Backend - never directly by Frontend.
 
 ## Project Structure
 
@@ -16,18 +28,21 @@ This service provides three core ML capabilities:
 machine_learning/
 ├── app/
 │   ├── main.py                 # FastAPI application entry point
+│   ├── common/                 # Shared utilities (logger, exceptions)
 │   ├── config/                 # Configuration settings
 │   ├── models/                 # ML model implementations
 │   │   ├── recommendation/     # Rice variety recommendation
 │   │   ├── weather/            # Weather forecasting
-│   │   └── soil/               # Soil health & forecasting
+│   │   └── soil/               # Hybrid soil forecasting model
 │   ├── services/               # Business logic layer
 │   ├── routers/                # API endpoints
 │   ├── schemas/                # Pydantic models
-│   ├── utils/                  # Utility functions
-│   └── data/                   # Data connectors & repositories
+│   └── utils/                  # Utility functions
+├── data/                       # Training data
+│   └── soil/                   # Soil datasets (synthetic, third district)
 ├── trained_models/             # Saved model artifacts
-├── notebooks/                  # Jupyter notebooks for training
+│   └── soil/                   # Trained hybrid model (.joblib)
+├── notebooks/                  # Jupyter notebooks for exploration
 ├── scripts/                    # Training scripts
 ├── tests/                      # Unit tests
 ├── Dockerfile
@@ -36,100 +51,97 @@ machine_learning/
 
 ## Quick Start
 
-### Using Docker
-
-```bash
-# Build the image
-docker build -t arice-ml-service .
-
-# Run the container
-docker run -p 8001:8001 arice-ml-service
-```
-
 ### Local Development
 
 ```bash
+# Navigate to machine_learning directory
+cd machine_learning
+
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Linux/Mac
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Train the hybrid soil model
+python scripts/train_hybrid_soil.py
 
 # Run the service
 uvicorn app.main:app --reload --port 8001
 ```
 
+### Using Docker
+
+```bash
+docker build -t arice-ml-service .
+docker run -p 8001:8001 arice-ml-service
+```
+
 ## API Endpoints
 
 ### Health Check
-- `GET /health` - Service health status
-- `GET /models/status` - ML models status
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Service health status |
+| `/models/status` | GET | ML models loading status |
 
-### Recommendation
-- `POST /api/recommend/variety` - Get rice variety recommendations
-- `POST /api/recommend/batch` - Batch recommendations
+### Soil Analysis (`/api/soil`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/analyze` | POST | Analyze soil health, returns score (0-100) |
+| `/health-score-detailed` | POST | Detailed health scoring with parameter breakdown |
+| `/hybrid-forecast` | POST | Generate 3-month hybrid forecast |
+| `/realign-forecast` | POST | Realign forecast with new sensor data |
+| `/status` | GET | Soil service status |
 
-### Weather
-- `POST /api/weather/forecast` - Get weather forecast
-- `GET /api/weather/current/{location_id}` - Current weather
+### Recommendation (`/api/recommend`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/variety` | POST | Get rice variety recommendations |
 
-### Soil Analysis
-- `POST /api/soil/health` - Analyze soil health
-- `POST /api/soil/forecast` - Get 3-month soil forecast
-- `POST /api/soil/recommendations` - Get improvement recommendations
+### Weather (`/api/weather`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/forecast` | POST | Get weather forecast |
 
 ## Training Models
 
-### Train All Models
+### Train Hybrid Soil Model
 ```bash
-python scripts/train_all.py --data-source database
+python scripts/train_hybrid_soil.py
+python scripts/train_hybrid_soil.py --data-path data/soil/synthetic_soil_timeseries.csv
 ```
 
-### Train Individual Models
-```bash
-python scripts/train_recommendation.py --data-source database
-python scripts/train_weather.py --data-source database
-python scripts/train_soil_health.py --data-source database
-python scripts/train_soil_forecast.py --data-source database
+Output:
+```
+2026-01-04 21:48:39 | INFO | Starting training | Data: synthetic_soil_timeseries.csv
+2026-01-04 21:48:39 | INFO | Loaded 1460 records
+...
+=======================================================
+  Parameter Performance (Test R²)
+=======================================================
+  nitrogen_ppm           0.7108 ██████████████
+  phosphorus_ppm         0.6933 █████████████
+  ...
+=======================================================
+2026-01-04 21:48:49 | INFO | Training complete in 9.63s
 ```
 
-## Rice Growth Stages
-
-The soil forecast model aligns predictions with rice growth stages:
-
-| Stage | Days | Critical Nutrients |
-|-------|------|-------------------|
-| Seedling | 0-15 | Nitrogen, Phosphorus |
-| Tillering | 15-45 | Nitrogen, Potassium |
-| Panicle Initiation | 45-70 | Phosphorus, Potassium |
-| Flowering | 70-90 | Potassium, Nitrogen |
-| Grain Filling | 90-120 | Potassium, Phosphorus |
-
-## Soil Health Scoring
-
-Health scores are calculated on a 0-100 scale:
-
-- **90-100**: Excellent - Optimal conditions for rice cultivation
-- **75-89**: Good - Minor adjustments may improve yield
-- **60-74**: Fair - Some parameters need attention
-- **40-59**: Poor - Significant improvements needed
-- **0-39**: Critical - Major intervention required
+### Train Other Models
+```bash
+python scripts/train_recommendation.py
+python scripts/train_weather.py
+```
 
 ## Environment Variables
 
 ```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/arice_db
-
-# Service
 ML_SERVICE_HOST=0.0.0.0
 ML_SERVICE_PORT=8001
 DEBUG=false
-
-# Models
-MODELS_PATH=/app/trained_models
-MODEL_CACHE_SIZE=3
+MODELS_PATH=./trained_models
 ```
 
 ## Testing
@@ -141,27 +153,20 @@ pytest
 # Run with coverage
 pytest --cov=app --cov-report=html
 
-# Run specific test file
-pytest tests/test_recommendation.py -v
+# Run specific test
+pytest tests/test_soil.py -v
 ```
 
 ## Dependencies
 
 Key libraries:
 - **FastAPI** - Web framework
-- **scikit-learn** - ML algorithms
-- **Prophet** - Time series forecasting
+- **scikit-learn** - Random Forest, metrics
 - **pandas/numpy** - Data processing
-- **SQLAlchemy** - Database ORM
+- **joblib** - Model serialization
 - **Pydantic** - Data validation
-
-## Contributing
-
-1. Create a feature branch
-2. Make changes
-3. Run tests
-4. Submit pull request
+- **httpx** - HTTP client (for Backend→ML calls)
 
 ## License
 
-This project is part of the ARICE thesis project.
+ARICE Thesis Project - Wonderpets Team

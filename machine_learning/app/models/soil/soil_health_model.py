@@ -1,13 +1,3 @@
-"""
-Soil Health Scoring Model
-
-Analyzes soil conditions and generates:
-- Overall health score (0-100)
-- Individual parameter scores
-- Deficiency analysis
-- Improvement recommendations
-"""
-
 from typing import Any, Dict, List, Optional
 import numpy as np
 from ..base_model import BaseMLModel

@@ -10,6 +10,7 @@ from .task import Task
 from .soil_sensor_device import SoilSensorDevice
 from .soil_data import SoilData
 from .soil_analysis import SoilAnalysis
+from .soil_forecast import SoilForecast, SoilReading, ForecastRealignment
 from .user import User
 
 __all__ = [
@@ -25,5 +26,8 @@ __all__ = [
     "Task",
     "SoilSensorDevice",
     "SoilData",
-    "SoilAnalysis"
+    "SoilAnalysis",
+    "SoilForecast",
+    "SoilReading",
+    "ForecastRealignment"
 ]
