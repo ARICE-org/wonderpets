@@ -1,18 +1,20 @@
 import React from "react";
 import { HStack, ScrollView, Text } from "@gluestack-ui/themed";
 import WeatherCard from "./weathercard";
+import { Pressable } from "react-native";
+import { router } from "expo-router";
 
-const forecastData = [
-  { day: "TODAY", temp: "21°C", wind: "12.2 km/h" },
-  { day: "TUE", temp: "31°C", wind: "12.0 km/h" },
-  { day: "WED", temp: "29°C", wind: "11.5 km/h" },
-  { day: "THU", temp: "30°C", wind: "9.3 km/h" },
-  { day: "FRI", temp: "31°C", wind: "12.0 km/h" },
-  { day: "SAT", temp: "29°C", wind: "11.5 km/h" },
-  { day: "SUN", temp: "30°C", wind: "9.3 km/h" },
-];
+interface ForecastDay {
+  day: string;
+  temp: string;
+  wind: string;
+}
 
-export default function WeatherForecast() {
+interface WeatherForecastProps {
+  data: ForecastDay[];
+}
+
+export default function WeatherForecast({ data }: WeatherForecastProps) {
   return (
     <>
       <HStack
@@ -24,14 +26,21 @@ export default function WeatherForecast() {
         <Text fontSize="$lg" fontWeight="$bold" color="$black">
           7 Day Forecast
         </Text>
-        <Text fontSize="$xl" color="$black">
-          →
-        </Text>
+
+        <Pressable
+          onPress={() =>
+            router.navigate("/(tabs)/(stack)/weather/weatherScreen")
+          }
+        >
+          <Text fontSize="$xl" color="$black">
+            →
+          </Text>
+        </Pressable>
       </HStack>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <HStack px="$1">
-          {forecastData.map((day, index) => (
+          {data.map((day, index) => (
             <WeatherCard
               key={index}
               day={day.day}

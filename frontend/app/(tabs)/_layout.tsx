@@ -33,6 +33,12 @@ export default function TabsLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="(stack)"
+          options={{
+            href: null, // 🚨 VERY IMPORTANT
+          }}
+        />
       </Tabs>
     </View>
   );
