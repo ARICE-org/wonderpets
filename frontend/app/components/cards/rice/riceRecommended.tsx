@@ -19,9 +19,9 @@ export default function RiceRecommended() {
         <Text fontSize="$lg" fontWeight="$bold" color="$black">
           Recommended Rice
         </Text>
-        <Text fontSize="$xl" color="$black">
+        {/* <Text fontSize="$xl" color="$black">
           →
-        </Text>
+        </Text> */}
       </HStack>
 
       {/* Horizontal Scrollable Cards */}

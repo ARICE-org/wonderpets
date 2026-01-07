@@ -7,7 +7,7 @@ import {
   Pressable,
   ScrollView,
 } from "@gluestack-ui/themed";
-import BaseCard from "../components/cards/baseCard";
+import BaseCard from "../../../components/cards/baseCard";
 import { router } from "expo-router";
 
 const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

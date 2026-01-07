@@ -103,7 +103,7 @@ const Header = () => {
         <Box py="$6" px="$5">
           <HStack justifyContent="space-between" alignItems="center">
             <Pressable
-              onPress={() => router.navigate("/screens/calendarScreen")}
+              onPress={() => router.push("/(tabs)/(stack)/reco/calendarScreen")}
             >
               <Ionicons name="calendar-outline" size={24} color="black" />
             </Pressable>
@@ -112,7 +112,9 @@ const Header = () => {
             </Text>
             <Box>
               <Pressable
-                onPress={() => router.navigate("/screens/notificationScreen")}
+                onPress={() =>
+                  router.push("/(tabs)/(stack)/notificationScreen")
+                }
               >
                 <Ionicons
                   name="notifications-outline"
