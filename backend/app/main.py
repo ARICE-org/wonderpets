@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
+from app.middleware.rate_limiter import RateLimitMiddleware, FixedWindowRateLimiter
 from app.routers.ping import router as ping_router
 from app.routers.farmer import router as farmer_router
 from app.routers.user import router as user_router
@@ -13,8 +14,25 @@ from app.routers.weather import router as weather_router
 from app.routers.soil_forecast import router as soil_forecast_router
 from app.db import Base, engine
 import logging
+import os
+from datetime import datetime
 
+# Configure logging
 logger = logging.getLogger("uvicorn")
+
+logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
+os.makedirs(logs_dir, exist_ok=True)
+
+log_file = os.path.join(logs_dir, f"backend_requests_{datetime.now().strftime('%Y%m%d')}.log")
+file_handler = logging.FileHandler(log_file, encoding='utf-8')
+file_handler.setLevel(logging.INFO)
+
+# Custom formatter: DateTime - Endpoint - Client - Response
+formatter = logging.Formatter('%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+file_handler.setFormatter(formatter)
+
+logging.getLogger("uvicorn.access").addHandler(file_handler)
+logger.addHandler(file_handler)
 
 # OpenAPI/Swagger configuration
 tags_metadata = [
@@ -72,6 +90,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Rate Limiter Middleware (Fixed Window Algorithm - uses ENV config)
+rate_limiter = FixedWindowRateLimiter(
+    requests_per_window=settings.RATE_LIMIT_STANDARD_REQUESTS,
+    window_size_seconds=settings.RATE_LIMIT_STANDARD_WINDOW
+)
+app.add_middleware(
+    RateLimitMiddleware,
+    limiter=rate_limiter,
+    exclude_paths=["/health", "/docs", "/redoc", "/openapi.json"]
+)
 
 @app.on_event("startup")
 def on_startup():
@@ -96,15 +124,15 @@ def on_startup():
         logger.exception(exc)
 
 
-# Routers
-# app.include_router(ping_router)
-app.include_router(farmer_router)
-app.include_router(user_router)
-app.include_router(auth_router)
-app.include_router(soil_sensor_router)
-app.include_router(soil_data_router)
-app.include_router(weather_router)
-app.include_router(soil_forecast_router)
+# Routers - All endpoints prefixed with /api
+# app.include_router(ping_router, prefix="/api")
+app.include_router(farmer_router, prefix="/api")
+app.include_router(user_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(soil_sensor_router, prefix="/api")
+app.include_router(soil_data_router, prefix="/api")
+app.include_router(weather_router, prefix="/api")
+app.include_router(soil_forecast_router, prefix="/api")
 
 @app.get("/")
 def read_root():

@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     # Model parameters
     SOIL_FORECAST_HORIZON_DAYS: int = 90 
     
+    # Rate Limiting Configuration (Fixed Window Algorithm)
+    RATE_LIMIT_STANDARD_REQUESTS: int = 60   
+    RATE_LIMIT_STANDARD_WINDOW: int = 60     
+    RATE_LIMIT_PREDICTION_REQUESTS: int = 30 
+    RATE_LIMIT_PREDICTION_WINDOW: int = 60   
+    RATE_LIMIT_BATCH_REQUESTS: int = 10      
+    RATE_LIMIT_BATCH_WINDOW: int = 60        
+
     class Config:
         env_file = ".env"
         case_sensitive = True
