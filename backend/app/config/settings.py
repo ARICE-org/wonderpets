@@ -10,8 +10,18 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str
     
     # ML Service Configuration
-    ML_SERVICE_URL: str = "http://localhost:8001"  # Default for local development
-    ML_SERVICE_TIMEOUT: int = 30  # Timeout in seconds
+    ML_SERVICE_URL: str = "http://localhost:8001"  
+    ML_SERVICE_TIMEOUT: int = 30  
+    
+    # Rate Limiting Configuration
+    RATE_LIMIT_STANDARD_REQUESTS: int = 100  
+    RATE_LIMIT_STANDARD_WINDOW: int = 60     
+    RATE_LIMIT_AUTH_REQUESTS: int = 10       
+    RATE_LIMIT_AUTH_WINDOW: int = 60         
+    RATE_LIMIT_RELAXED_REQUESTS: int = 1000  
+    RATE_LIMIT_RELAXED_WINDOW: int = 60      
+    RATE_LIMIT_STRICT_REQUESTS: int = 5      
+    RATE_LIMIT_STRICT_WINDOW: int = 60       
 
     class Config:
         env_file = "../.env"

@@ -9,9 +9,29 @@ FastAPI application for serving ML predictions:
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+import os
+from datetime import datetime
 
 from app.config.settings import settings
+from app.middleware.rate_limiter import RateLimitMiddleware, FixedWindowRateLimiter
 from app.routers import recommendation, weather, soil
+
+logger = logging.getLogger("uvicorn")
+
+logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
+os.makedirs(logs_dir, exist_ok=True)
+
+log_file = os.path.join(logs_dir, f"ml_service_requests_{datetime.now().strftime('%Y%m%d')}.log")
+file_handler = logging.FileHandler(log_file, encoding='utf-8')
+file_handler.setLevel(logging.INFO)
+
+# Custom formatter: DateTime - Endpoint - Client - Response
+formatter = logging.Formatter('%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+file_handler.setFormatter(formatter)
+
+logging.getLogger("uvicorn.access").addHandler(file_handler)
+logger.addHandler(file_handler)
 
 app = FastAPI(
     title="ARICE ML Service",
@@ -30,6 +50,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Rate Limiter Middleware (Fixed Window Algorithm - uses ENV config)
+rate_limiter = FixedWindowRateLimiter(
+    requests_per_window=settings.RATE_LIMIT_STANDARD_REQUESTS,
+    window_size_seconds=settings.RATE_LIMIT_STANDARD_WINDOW
+)
+app.add_middleware(
+    RateLimitMiddleware,
+    limiter=rate_limiter,
+    exclude_paths=["/health", "/docs", "/redoc", "/openapi.json", "/models/status"]
+)
+
 # Include routers
 app.include_router(recommendation.router, prefix="/api/recommend", tags=["Recommendation"])
 app.include_router(weather.router, prefix="/api/weather", tags=["Weather"])
@@ -45,7 +76,6 @@ async def health_check():
 @app.get("/models/status", tags=["Health"])
 async def models_status():
     """Check status of loaded ML models"""
-    # TODO: Implement actual model status checking
     return {
         "recommendation_model": {"loaded": False, "version": None},
         "weather_model": {"loaded": False, "version": None},
