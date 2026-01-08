@@ -13,13 +13,15 @@ This controller handles:
 Business logic is delegated to SoilForecastService for maintainability.
 """
 
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from datetime import datetime, date, timedelta
 from uuid import UUID
 import uuid
 
 from sqlalchemy.orm import Session
 
+from app.models.farmer import Farmer
+from app.models.soil_sensor_device import SoilSensorDevice
 from app.schemas.soil_forecast import (
     UploadSensorDataRequest,
     SoilAnalysisResponse,
@@ -34,6 +36,13 @@ from app.packages.sensor_aggregator import sensor_aggregator
 from app.packages.ml_client import ml_client, MLServiceClient
 from app.models.soil_forecast import SoilForecast, SoilReading, ForecastRealignment
 from app.services.soil_forecast_service import soil_forecast_service, SoilForecastService
+
+
+class EntityNotFoundError(Exception):
+    """Exception raised when required entities (farmer/sensor) are not found."""
+    def __init__(self, details: List[str]):
+        self.details = details
+        super().__init__(f"Validation failed: {details}")
 
 
 class SoilForecastController:
@@ -74,7 +83,19 @@ class SoilForecastController:
             
         Returns:
             SoilAnalysisResponse with health score, forecast, and recommendations
+            
+        Raises:
+            EntityNotFoundError: If farmer or sensor ID doesn't exist
         """
+        # 0. Validate farmer and sensor existence BEFORE any processing
+        validation_errors = await self._validate_entities(
+            db=db,
+            farmer_id=request.farmer_id,
+            sensor_id=request.sensor_id
+        )
+        if validation_errors:
+            raise EntityNotFoundError(details=validation_errors)
+        
         # 1. Convert readings to dictionaries for aggregation
         readings_dicts = [
             {
@@ -414,6 +435,40 @@ class SoilForecastController:
             total_readings=total_count,
             readings=reading_items
         )
+    
+    async def _validate_entities(
+        self,
+        db: Session,
+        farmer_id: UUID,
+        sensor_id: Optional[UUID]
+    ) -> List[str]:
+        """
+        Validate that farmer and sensor exist in the database.
+        
+        Args:
+            db: Database session
+            farmer_id: Farmer UUID to validate
+            sensor_id: Optional sensor UUID to validate
+            
+        Returns:
+            List of error messages (empty if all valid)
+        """
+        errors = []
+        
+        # Check if farmer exists
+        farmer = db.query(Farmer).filter(Farmer.farmer_id == farmer_id).first()
+        if not farmer:
+            errors.append(f"User {farmer_id} doesn't exist")
+        
+        # Check if sensor exists (only if sensor_id is provided)
+        if sensor_id:
+            sensor = db.query(SoilSensorDevice).filter(
+                SoilSensorDevice.sensor_id == sensor_id
+            ).first()
+            if not sensor:
+                errors.append(f"Sensor {sensor_id} doesn't exist")
+        
+        return errors
     
     async def _save_reading(
         self,

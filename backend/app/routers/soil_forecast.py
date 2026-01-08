@@ -12,7 +12,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db
-from app.controllers.soil_forecast_controller import soil_forecast_controller
+from app.controllers.soil_forecast_controller import soil_forecast_controller, EntityNotFoundError
 from app.schemas.soil_forecast import (
     UploadSensorDataRequest,
     SoilAnalysisResponse,
@@ -59,6 +59,11 @@ async def upload_sensor_readings(
             request=request
         )
         return response
+    except EntityNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"details": e.details}
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
