@@ -5,6 +5,11 @@ Configuration settings for the ML service
 from pydantic_settings import BaseSettings
 from typing import List
 import os
+from pathlib import Path
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+_ML_ROOT = _REPO_ROOT / "machine_learning"
 
 
 class Settings(BaseSettings):
@@ -33,6 +38,10 @@ class Settings(BaseSettings):
     # External APIs
     WEATHER_API_KEY: str = ""
     WEATHER_API_URL: str = ""
+
+    # MongoDB (Forecast store)
+    MONGO_DB_URI: str = ""
+    MONGO_DB_NAME: str = "arice"
     
     # Model parameters
     SOIL_FORECAST_HORIZON_DAYS: int = 90 
@@ -46,8 +55,10 @@ class Settings(BaseSettings):
     RATE_LIMIT_BATCH_WINDOW: int = 60        
 
     class Config:
-        env_file = ".env"
+        # Prefer repo-level .env; allow an optional machine_learning/.env override.
+        env_file = (str(_REPO_ROOT / ".env"), str(_ML_ROOT / ".env"))
         case_sensitive = True
+        extra = "ignore"
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
