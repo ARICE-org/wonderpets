@@ -18,7 +18,7 @@ export default function NotificationScreen() {
       <Box flex={1}>
         {/* Header */}
         <HStack alignItems="center" px="$4" py="$3">
-          <Pressable onPress={() => router.back()}>
+          <Pressable onPress={() => router.navigate("/MainScreen")}>
             <HStack alignItems="center" space="sm">
               <ChevronLeft size={20} color="#16A34A" />
               <Text color="$green600" fontWeight="$medium">

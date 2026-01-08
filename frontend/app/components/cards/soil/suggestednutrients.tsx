@@ -1,30 +1,20 @@
 import React from "react";
-import { Box, VStack, HStack, Text } from "@gluestack-ui/themed";
-
-interface Nutrient {
-  label: string;
-  value: string;
-  color: string;
-}
-
-const nutrients: Nutrient[] = [
-  { label: "Nitrogen", value: "27 ppm", color: "#4A90E2" },
-  { label: "Phosphorus", value: "30 ppm", color: "#50E3C2" },
-  { label: "Potassium", value: "138 ppm", color: "#F5A623" },
-  { label: "Calcium", value: "1500 ppm", color: "#7ED321" },
-];
+import { VStack, HStack, Text } from "@gluestack-ui/themed";
+import BaseCard from "../baseCard";
+import { data as nutrients } from "./soildata";
 
 export default function suggestednutrients() {
   return (
-    <Box
+    <BaseCard
       bg="$white"
       p="$4"
-      mb="$4"
+      mb="$6"
       rounded="$lg"
-      shadowColor="$black"
-      shadowOpacity={0.1}
-      shadowRadius={4}
-      shadowOffset={{ width: 0, height: 2 }}
+      shadowColor="black"
+      shadowOffset={{ width: 0, height: 0 }}
+      shadowOpacity={0.2}
+      shadowRadius={5}
+      elevation={2}
     >
       <Text fontSize="$lg" fontWeight="bold" mb="$3">
         Suggested Nutrients Value
@@ -39,6 +29,6 @@ export default function suggestednutrients() {
           </HStack>
         ))}
       </VStack>
-    </Box>
+    </BaseCard>
   );
 }

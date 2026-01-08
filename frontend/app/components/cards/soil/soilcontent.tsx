@@ -1,9 +1,20 @@
 import React from "react";
-import { Box, VStack, HStack, Text, Pressable } from "@gluestack-ui/themed";
+import { VStack, HStack, Text, Pressable } from "@gluestack-ui/themed";
+import BaseCard from "../baseCard";
+import { router } from "expo-router";
 
-export default function AdditionalSoilContent() {
+export default function soilContent() {
   return (
-    <Box bg="$white" p="$4" mb="$4" rounded="$lg">
+    <BaseCard
+      bg="$white"
+      mb="$4"
+      rounded="$lg"
+      shadowColor="black"
+      shadowOffset={{ width: 0, height: 0 }}
+      shadowOpacity={0.2}
+      shadowRadius={5}
+      elevation={2}
+    >
       <Text fontSize="$lg" fontWeight="bold" mb="$3">
         Additional Soil Content
       </Text>
@@ -23,11 +34,17 @@ export default function AdditionalSoilContent() {
         </VStack>
       </HStack>
 
-      <Pressable p="$3" bg="$green100" rounded="$md" alignItems="center">
+      <Pressable
+        onPress={() => router.navigate("/(tabs)/(stack)/soil/soilmanageData")}
+        p="$3"
+        bg="$green100"
+        rounded="$md"
+        alignItems="center"
+      >
         <Text color="$green800" fontWeight="bold">
           Possible Actions
         </Text>
       </Pressable>
-    </Box>
+    </BaseCard>
   );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { VStack, HStack, Text } from "@gluestack-ui/themed";
-import { Pressable, TouchableOpacity } from "react-native";
+import { Pressable } from "react-native";
 import { soilMetrics } from "./soildata";
 import MetricRow from "./metricRow";
 import StatusBar from "./statusBar";
@@ -22,7 +22,7 @@ export default function SoilSummary() {
           Soil Summary
         </Text>
         <Pressable
-          onPress={() => router.push("/(tabs)/(stack)/soil/soilScreen")}
+          onPress={() => router.push("/(tabs)/(stack)/soil/soilScreeen")}
         >
           <Text fontSize="$2xl" fontWeight="$bold" color="$coolGray500">
             →

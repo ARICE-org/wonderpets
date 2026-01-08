@@ -38,14 +38,14 @@ export default function HourlyForecast({ data }: HourlyForecastProps) {
     .join(" ");
 
   return (
-    <BaseCard p="$4" rounded="$xl" bg="$white" mb="$4">
+    <BaseCard p="$1" rounded="$xl" bg="$white" mb="$4">
       <VStack>
         <Text fontSize="$md" fontWeight="$bold" mb="$3">
           24-hour forecast
         </Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <VStack>
+          <VStack borderRadius="$md" px="$1" py="$2" bg="$coolGray100">
             {/* Temperature Row */}
             <HStack>
               {data.map((item, index) => (
