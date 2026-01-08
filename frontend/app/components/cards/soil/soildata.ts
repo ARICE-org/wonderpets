@@ -46,4 +46,23 @@ export const soilMetrics: SoilMetric[] = [
   },
 ];
 
+export const data = [
+  { label: "Nitrogen", value: "27 ppm", color: "$blue500", symbol: "N" },
+  { label: "Phosphorus", value: "30 ppm", color: "$green500", symbol: "P" },
+  { label: "Potassium", value: "138 ppm", color: "$yellow500", symbol: "K" },
+];
+interface Nutrient {
+  label: string;
+  value: string;
+  color: string;
+}
+
+export const nutrients: Nutrient[] = [
+  { label: "Nitrogen", value: "27 ppm", color: "#4A90E2" },
+  { label: "Phosphorus", value: "30 ppm", color: "#50E3C2" },
+  { label: "Potassium", value: "138 ppm", color: "#F5A623" },
+  { label: "Calcium", value: "1500 ppm", color: "#7ED321" },
+];
+
+
 export default soilMetrics;

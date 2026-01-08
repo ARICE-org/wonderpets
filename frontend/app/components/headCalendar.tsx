@@ -1,63 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { format, addDays, subDays, isSameDay } from "date-fns";
-import { Box, HStack, Text, Pressable } from "@gluestack-ui/themed";
-import { Ionicons } from "@expo/vector-icons"; // Assuming you have Ionicons for the icons
+import { Box, HStack, Pressable, Text } from "@gluestack-ui/themed";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
-const NUM_DAYS_TO_DISPLAY = 7; // We want to display exactly 7 days
+const NUM_DAYS_TO_DISPLAY = 7;
 
-/**
- * Renders a single tappable date item in the grid format.
- */
 interface DateGridItemProps {
   date: Date;
   isActive: boolean;
   isToday: boolean;
-  onSelectDate: (date: Date) => void;
 }
 
-const DateGridItem = ({
-  date,
-  isActive,
-  isToday,
-  onSelectDate,
-}: DateGridItemProps) => {
-  // Format "F", "S", "SN" (Sunday), "T", "W", "TH"
-  const dayName = format(date, "EEEEE"); // 'EEEEE' gives a single letter day name
+const DateGridItem = ({ date, isActive, isToday }: DateGridItemProps) => {
+  const dayName = format(date, "EEEEE");
   const dayNumber = format(date, "d");
 
   return (
-    <Pressable
-      onPress={() => onSelectDate(date)}
-      flex={1} // Each item takes equal width
+    <Box
+      flex={1}
       alignItems="center"
       justifyContent="center"
-      py="$2" // Vertical padding
-      px="$1" // Horizontal padding to prevent text from touching edges
-      minWidth={44} // Ensure minimum width for touchability
-      sx={{
-        ":active": {
-          opacity: 0.7,
-        },
-      }}
+      py="$2"
+      minWidth={44}
     >
       <Text
         fontSize="$xs"
         fontWeight="$medium"
-        color={isActive ? "$black" : "$gray500"} // Active day name color
-        mb="$1" // Margin bottom for spacing
+        color={isActive ? "$black" : "$gray500"}
+        mb="$1"
         textTransform="uppercase"
       >
         {isToday ? "TODAY" : dayName}
       </Text>
+
       <Box
+        width={38}
+        height={38}
+        borderRadius="$full"
         alignItems="center"
         justifyContent="center"
-        width={38} // Fixed width for the circle
-        height={38} // Fixed height for the circle
-        borderRadius="$full" // Makes it a circle
-        bg={isActive ? "#34E0A1" : "transparent"} // Green highlight
+        bg={isActive ? "#34E0A1" : "transparent"} // green highlight
       >
         <Text
           fontSize="$md"
@@ -67,84 +51,68 @@ const DateGridItem = ({
           {dayNumber}
         </Text>
       </Box>
-    </Pressable>
+    </Box>
   );
 };
 
-/**
- * The main Header component
- */
 const Header = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const today = new Date();
-  const [selectedDate, setSelectedDate] = useState(today);
 
-  // Get the month from the *selected* date
-  const currentMonth = format(selectedDate, "MMMM");
+  // The green highlight initially on today (static for now)
+  const [selectedDate] = useState(today);
 
-  // Generate 7 dates centered around today's date or a selected date
-  const datesToDisplay = React.useMemo(() => {
-    const dates = [];
-    // Determine the start date to have today in the middle
-    // If 7 days, we want 3 days before today, today, and 3 days after.
+  const currentMonthYear = format(today, "MMMM yyyy"); // always current month/year
+
+  const datesToDisplay = useMemo(() => {
     const daysBefore = Math.floor(NUM_DAYS_TO_DISPLAY / 2);
-    const startDate = subDays(today, daysBefore);
+    const startDate = subDays(today, daysBefore); // always centered around today
+    return Array.from({ length: NUM_DAYS_TO_DISPLAY }, (_, i) =>
+      addDays(startDate, i)
+    );
+  }, [today]);
 
-    for (let i = 0; i < NUM_DAYS_TO_DISPLAY; i++) {
-      dates.push(addDays(startDate, i));
-    }
-    return dates;
-  }, [today]); // Regenerate only if `today` changes
+  // selection state is kept for highlighting, items are not interactive here
 
   return (
     <SafeAreaView edges={["top"]}>
       <Box bg="$white" pb="$5">
-        {/* Top Bar: Calendar Icon, Month, Notification Icon */}
+        {/* Top Bar */}
         <Box py="$6" px="$5">
           <HStack justifyContent="space-between" alignItems="center">
+            {/* Calendar icon decorative, not clickable */}
             <Pressable
-              onPress={() => router.push("/(tabs)/(stack)/reco/calendarScreen")}
+              onPress={() =>
+                router.navigate("/(tabs)/(stack)/reco/calendarScreen")
+              }
             >
               <Ionicons name="calendar-outline" size={24} color="black" />
             </Pressable>
-            <Text fontSize="$xl" fontWeight="$bold" color="$black">
-              {currentMonth}
-            </Text>
-            <Box>
-              <Pressable
-                onPress={() =>
-                  router.push("/(tabs)/(stack)/notificationScreen")
-                }
-              >
-                <Ionicons
-                  name="notifications-outline"
-                  size={24}
-                  color="black"
-                />
-              </Pressable>
 
-              <Box
-                position="absolute"
-                top={-2}
-                right={-2}
-                width={8}
-                height={8}
-                borderRadius="$full"
-                bg="$red500"
-              />
-            </Box>
+            {/* Always show current month & year */}
+            <Text fontSize="$xl" fontWeight="$bold">
+              {currentMonthYear}
+            </Text>
+
+            {/* Notification icon (optional) */}
+            <Pressable
+              onPress={() =>
+                router.navigate("/(tabs)/(stack)/notificationScreen")
+              }
+            >
+              <Ionicons name="notifications-outline" size={24} color="black" />
+            </Pressable>
           </HStack>
         </Box>
 
-        {/* Bottom Part: 7-Day Horizontal Strip */}
-        <HStack justifyContent="space-around" alignItems="flex-start" px="$2">
+        {/* 7-Day Horizontal Strip */}
+        <HStack justifyContent="space-around" px="$2">
           {datesToDisplay.map((date) => (
             <DateGridItem
               key={date.toISOString()}
               date={date}
               isActive={isSameDay(date, selectedDate)}
-              isToday={isSameDay(date, today)} // Pass isToday prop
-              onSelectDate={setSelectedDate}
+              isToday={isSameDay(date, today)}
             />
           ))}
         </HStack>
