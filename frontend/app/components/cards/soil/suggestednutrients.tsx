@@ -1,7 +1,7 @@
 import React from "react";
 import { VStack, HStack, Text } from "@gluestack-ui/themed";
 import BaseCard from "../baseCard";
-import { data as nutrients } from "./soildata";
+import { nutrients as nutrients } from "../../../Data/soildata";
 
 export default function suggestednutrients() {
   return (

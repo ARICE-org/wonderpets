@@ -24,8 +24,17 @@ export default function pastYield({ data }: Props) {
   const chartWidth = Math.max(SCREEN_WIDTH * 1.5, SCREEN_WIDTH + 500);
 
   return (
-    <BaseCard bg="$white" p="$4" mb="$4" rounded="$lg" overflow="hidden">
-      <VStack space="sm">
+    <BaseCard
+      bg="$white"
+      rounded="$lg"
+      overflow="hidden"
+      shadowColor="black"
+      shadowOffset={{ width: 0, height: 0 }}
+      shadowOpacity={0.2}
+      shadowRadius={5}
+      elevation={2}
+    >
+      <VStack space="xs">
         <Text fontWeight="$bold" fontSize="$md">
           Past Yield Data
         </Text>
@@ -38,8 +47,10 @@ export default function pastYield({ data }: Props) {
               datasets: data.datasets.map((d) => ({
                 data: d.data,
                 color: () =>
-                  d.color.replace("$", "").startsWith("#") ? d.color : "#000",
-                strokeWidth: 2,
+                  d.color.replace("$", "").startsWith("#")
+                    ? d.color
+                    : "#66CC66",
+                strokeWidth: 1,
               })),
               legend: data.datasets.map((d) => d.label),
             }}
@@ -49,8 +60,8 @@ export default function pastYield({ data }: Props) {
             chartConfig={{
               backgroundGradientFrom: "#fff",
               backgroundGradientTo: "#fff",
-              color: () => "#000",
-              labelColor: () => "#999",
+              color: () => "#666362",
+              labelColor: () => "#100C08",
               propsForDots: {
                 r: "4",
                 strokeWidth: "2",

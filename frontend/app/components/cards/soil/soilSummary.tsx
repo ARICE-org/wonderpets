@@ -1,7 +1,7 @@
 import React from "react";
 import { VStack, HStack, Text } from "@gluestack-ui/themed";
 import { Pressable } from "react-native";
-import { soilMetrics } from "./soildata";
+import { soilMetrics } from "../../../Data/soildata";
 import MetricRow from "./metricRow";
 import StatusBar from "./statusBar";
 import { router } from "expo-router";

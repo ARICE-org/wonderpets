@@ -76,7 +76,7 @@ const Header = () => {
 
   return (
     <SafeAreaView edges={["top"]}>
-      <Box bg="$white" pb="$5">
+      <Box bg="$white" mt="$1">
         {/* Top Bar */}
         <Box py="$6" px="$5">
           <HStack justifyContent="space-between" alignItems="center">

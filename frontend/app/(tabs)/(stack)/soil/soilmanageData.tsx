@@ -5,47 +5,27 @@ import { ScrollView, VStack, Text } from "@gluestack-ui/themed";
 import PastYieldCard from "../../../components/cards/soil/pastYield";
 import PastDataValueCard from "../../../components/cards/soil/pastDataValue";
 import PastFertilizerCard from "../../../components/cards/soil/pastFertilizer";
+import {
+  pastYieldData,
+  fertilizerValues,
+  soilDataByYear,
+} from "../../../Data/soildata";
 
 export default function SoilManageData() {
-  const [selectedYear, setSelectedYear] = useState("2023");
+  // derive available years from soilDataByYear and set a safe default
+  type YearKey = keyof typeof soilDataByYear;
+  const availableYears = Object.keys(soilDataByYear).sort((a, b) =>
+    b.localeCompare(a)
+  ) as YearKey[];
+  const [selectedYear, setSelectedYear] = useState<YearKey>(
+    availableYears.length
+      ? availableYears[0]
+      : (Object.keys(soilDataByYear)[0] as YearKey)
+  );
 
-  /* ===== DATA ===== */
-
-  const pastYieldData = {
-    labels: ["1st Sem", "2nd Sem", "3rd Sem", "4th Sem"],
-    datasets: [
-      {
-        label: "2022 Yield",
-        color: "$blue500",
-        data: [20, 45, 60, 40],
-      },
-      {
-        label: "2023 Yield",
-        color: "$green500",
-        data: [30, 55, 50, 65],
-      },
-      {
-        label: "2024 Yield",
-        color: "$yellow500",
-        data: [40, 60, 55, 70],
-      },
-    ],
-  };
-
-  const soilDataByYear: any = {
-    2023: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May"],
-      nitrogen: [30, 20, 45, 25, 35],
-      phosphorus: [15, 30, 20, 40, 25],
-      potassium: [80, 75, 90, 85, 95],
-    },
-  };
-
-  const fertilizerValues = [
-    { label: "Nitrogen", value: 27, color: "$blue500" },
-    { label: "Phosphorus", value: 30, color: "$green500" },
-    { label: "Potassium", value: 138, color: "$yellow500" },
-  ];
+  // ensure we always pass a valid data object to the child
+  const currentData = soilDataByYear[selectedYear] ??
+    soilDataByYear[availableYears[0]] ?? { labels: [], datasets: [] };
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
@@ -54,22 +34,31 @@ export default function SoilManageData() {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 16,
-          paddingBottom: 8, // 👈 small, no gap
+          paddingBottom: 8,
+          backgroundColor: "#FFFFFF",
+          //   paddingTop: 24, // slightly bigger top padding for title
+          //   paddingBottom: 24, // space at the bottom
         }}
       >
-        <VStack px="$4" py="$4" space="lg">
-          <Text fontSize="$xl" fontWeight="$bold">
+        <VStack space="md">
+          {/* Title */}
+          <Text fontSize="$2xl" fontWeight="$bold" mb="$4" textAlign="center">
             Manage Soil Data
           </Text>
 
+          {/* Past Yield Card */}
           <PastYieldCard data={pastYieldData} />
 
+          {/* Past Data Value Card */}
           <PastDataValueCard
             year={selectedYear}
-            onYearChange={setSelectedYear}
-            data={soilDataByYear[selectedYear]}
+            onYearChange={(y: string) =>
+              setSelectedYear(y as keyof typeof soilDataByYear)
+            }
+            data={currentData}
           />
 
+          {/* Past Fertilizer Card */}
           <PastFertilizerCard data={fertilizerValues} />
         </VStack>
       </ScrollView>

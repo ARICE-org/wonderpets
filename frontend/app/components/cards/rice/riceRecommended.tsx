@@ -1,52 +1,42 @@
-import React, { useState } from "react";
-import { HStack, ScrollView, Text } from "@gluestack-ui/themed";
+import React from "react";
+import { HStack, ScrollView, Text, Box } from "@gluestack-ui/themed";
 import RiceCard from "./riceCard";
-import SelectedRiceModal from "./SelectedRiceModal";
-
-const riceList = ["RC 222", "RC 160", "RC 480", "Jasmin"];
+import { useRice } from "../../../../context/riceContext";
+import { useRouter } from "expo-router";
 
 export default function RiceRecommended() {
-  const [selectedRice, setSelectedRice] = useState<string | null>(null);
+  const { riceList } = useRice();
+  const router = useRouter();
 
   return (
-    <>
-      <HStack
-        px="$4"
-        alignItems="center"
-        justifyContent="space-between"
-        mb="$2"
-      >
-        <Text fontSize="$lg" fontWeight="$bold" color="$black">
-          Recommended Rice
-        </Text>
-        {/* <Text fontSize="$xl" color="$black">
-          →
-        </Text> */}
-      </HStack>
+    <Box mt="$2">
+      <Text px="$4" fontSize="$lg" fontWeight="$bold">
+        Recommended Rice
+      </Text>
 
-      {/* Horizontal Scrollable Cards */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <HStack px="$1" py="$1">
-          {riceList.map((rice, index) => (
+        <HStack px="$4" py="$2" space="sm">
+          {riceList.map((rice) => (
             <RiceCard
-              key={index}
-              label={rice}
-              onPress={() => setSelectedRice(rice)}
+              key={rice.id}
+              name={rice.name}
+              planted={rice.planted}
+              stage={rice.stage}
+              progress={rice.progress}
+              onPress={() =>
+                !rice.planted &&
+                router.push({
+                  pathname: "/(tabs)/(stack)/reco/RiceEntryScreen",
+                  params: {
+                    riceId: rice.id,
+                    riceName: rice.name,
+                  },
+                })
+              }
             />
           ))}
         </HStack>
       </ScrollView>
-
-      {/* Selected Rice Dialog */}
-      <SelectedRiceModal
-        isOpen={!!selectedRice}
-        riceName={selectedRice ?? ""}
-        onConfirm={() => {
-          console.log("Confirmed rice:", selectedRice);
-          setSelectedRice(null);
-        }}
-        onClose={() => setSelectedRice(null)}
-      />
-    </>
+    </Box>
   );
 }

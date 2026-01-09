@@ -1,6 +1,6 @@
 import React from "react";
 import { HStack, VStack, Text, Center } from "@gluestack-ui/themed";
-import { SoilMetric } from "./soildata";
+import { SoilMetric } from "../../../Data/soildata";
 
 type MetricItemProps = Omit<SoilMetric, "id" | "color">;
 
