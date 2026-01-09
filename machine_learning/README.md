@@ -1,171 +1,207 @@
-# ARICE Machine Learning Service
+# ARICE Machine Learning Services
 
-Machine Learning microservice for the ARICE (Agricultural Rice Information and Consulting Expert) project.
+Machine Learning microservices for the ARICE (Agricultural Rice Information and Consulting Expert) project.
 
-## Overview
+This folder contains multiple FastAPI services (Soil, Weather, Recommendation) that are consumed by the Backend. The Frontend never calls these services directly.
 
-This service provides ML capabilities for rice farming:
+## What’s In Here
 
-1. **Soil Health Analysis** - Scores soil health (0-100) with detailed parameter breakdown
-2. **Hybrid Soil Forecasting** - 3-month forecasts combining Rule-Based soil science with ML corrections
-3. **Forecast Realignment** - Adjusts predictions when new sensor data arrives
-4. **Rice Variety Recommendation** - Suggests optimal rice varieties based on conditions
-5. **Weather Forecasting** - Predicts temperature, rainfall, and humidity
+- **Soil Service**: soil health scoring, hybrid soil forecasting, forecast realignment
+- **Weather Service**: weather forecast + historical analysis endpoints
+- **Recommendation Service**: rice variety recommendations + planting schedule
 
-## Architecture
+## Architecture (Microservices)
 
+```mermaid
+flowchart LR
+  Frontend["Frontend (Expo)"]
+  Backend["Backend (FastAPI:8000)"]
+  DB[("PostgreSQL DB")]
+
+  subgraph ML["ML Microservices"]
+    Soil["Soil Service\n(FastAPI:8001)"]
+    Weather["Weather Service\n(FastAPI:8002)"]
+    Rec["Recommendation Service\n(FastAPI:8003)"]
+  end
+
+  Frontend <--> Backend
+  Backend <--> Soil
+  Backend <--> Weather
+  Backend <--> Rec
+  Backend <--> DB
 ```
-Frontend (Expo) ←→ Backend (FastAPI:8000) ←→ ML Service (FastAPI:8001)
-                         ↓
-                   PostgreSQL DB
-```
 
-The ML Service is called only by the Backend - never directly by Frontend.
+Notes:
+- Ports `8002` and `8003` are present in `docker-compose.yml` but currently commented out.
+- Each service has its own FastAPI app entrypoint under `apps/*_service/main.py`.
 
-## Project Structure
+## Services
+
+| Service | Entry point | Default port | Base path prefix |
+|---------|------------|--------------|------------------|
+| Soil | `apps/soil_service/main.py` | 8001 | `/api/v1/soil` |
+| Weather | `apps/weather_service/main.py` | 8002 | `/api/v1/weather` |
+| Recommendation | `apps/recommendation_service/main.py` | 8003 | `/api/v1/recommendation` |
+
+### Soil Service Endpoints
+
+- `GET /health`
+- `POST /api/v1/soil/analyze`
+- `POST /api/v1/soil/health-score-detailed`
+- `POST /api/v1/soil/hybrid-forecast`
+- `POST /api/v1/soil/realign-forecast`
+- `GET /api/v1/soil/status`
+
+Implementation reference:
+- Hybrid soil model: `apps/soil_service/models/hybrid_forecast_model.py`
+- Soil API routes: `apps/soil_service/api/endpoints.py`
+
+### Weather Service Endpoints
+
+- `GET /health`
+- `POST /api/v1/weather/forecast`
+- `POST /api/v1/weather/historical`
+- `GET /api/v1/weather/current/{latitude}/{longitude}`
+- `GET /api/v1/weather/status`
+
+### Recommendation Service Endpoints
+
+- `GET /health`
+- `POST /api/v1/recommendation/varieties` (get recommendations)
+- `GET /api/v1/recommendation/varieties` (list varieties)
+- `GET /api/v1/recommendation/varieties/{variety_id}`
+- `POST /api/v1/recommendation/planting-schedule`
+- `GET /api/v1/recommendation/status`
+
+## Repository Layout
+
+This is the current structure (matches the implementation under `apps/`).
 
 ```
 machine_learning/
-├── app/
-│   ├── main.py                 # FastAPI application entry point
-│   ├── common/                 # Shared utilities (logger, exceptions)
-│   ├── config/                 # Configuration settings
-│   ├── models/                 # ML model implementations
-│   │   ├── recommendation/     # Rice variety recommendation
-│   │   ├── weather/            # Weather forecasting
-│   │   └── soil/               # Hybrid soil forecasting model
-│   ├── services/               # Business logic layer
-│   ├── routers/                # API endpoints
-│   ├── schemas/                # Pydantic models
-│   └── utils/                  # Utility functions
-├── data/                       # Training data
-│   └── soil/                   # Soil datasets (synthetic, third district)
-├── trained_models/             # Saved model artifacts
-│   └── soil/                   # Trained hybrid model (.joblib)
-├── notebooks/                  # Jupyter notebooks for exploration
-├── scripts/                    # Training scripts
-├── tests/                      # Unit tests
+├── apps/
+│   ├── common/                     # Shared base classes, utils, validators, schemas
+│   ├── config/                     # Shared settings (project-wide defaults)
+│   ├── middleware/                 # Shared middleware (rate limit, logging, errors)
+│   ├── soil_service/
+│   │   ├── api/                    # Routers + request/response schemas
+│   │   ├── core/                   # Service config/constants
+│   │   ├── models/                 # ML models + soil domain logic
+│   │   ├── services/               # Use cases/orchestration (calls models)
+│   │   └── tests/
+│   ├── weather_service/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── models/
+│   │   ├── services/
+│   │   └── tests/
+│   └── recommendation_service/
+│       ├── api/
+│       ├── core/
+│       ├── models/
+│       ├── services/
+│       └── tests/
+├── data/                           # Datasets
+├── trained_models/                 # Model artifacts (joblib, etc.)
+├── docs/                           # Documentation (e.g., hybrid soil model explanation)
+├── notebooks/                      # Experiment notebooks
+├── scripts/                        # Training/utility scripts (some legacy)
+├── tests/                          # Cross-service tests
 ├── Dockerfile
 └── requirements.txt
 ```
 
-## Quick Start
+## DDD Mapping (Practical)
 
-### Local Development
+We use a DDD-inspired separation inside each service:
 
-```bash
-# Navigate to machine_learning directory
+- **Interfaces (API layer)**: `apps/*_service/api`, plus `apps/*_service/main.py`
+- **Application (use cases)**: `apps/*_service/services`
+- **Domain (models + rules)**: `apps/*_service/models` (and some constants under `apps/*_service/core`)
+- **Infrastructure**: `trained_models/`, `data/`, plus any external adapters in `apps/*_service/core` / `apps/common/utils`
+- **Shared Kernel**: `apps/common`, `apps/middleware`, `apps/config`
+
+## Running Locally
+
+Prereqs: Python + dependencies from `requirements.txt`.
+
+```powershell
 cd machine_learning
-
-# Create virtual environment
 python -m venv .venv
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/Mac
-
-# Install dependencies
+.venv\Scripts\activate
 pip install -r requirements.txt
-
-# Train the hybrid soil model
-python scripts/train_hybrid_soil.py
-
-# Run the service
-uvicorn app.main:app --reload --port 8001
 ```
 
-### Using Docker
+Run a service (example: Soil):
+
+```powershell
+cd machine_learning
+$env:MODEL_PATH = "./trained_models/soil"
+uvicorn apps.soil_service.main:app --reload --host 0.0.0.0 --port 8001
+```
+
+Run Weather:
+
+```powershell
+cd machine_learning
+$env:MODEL_PATH = "./trained_models/weather"
+uvicorn apps.weather_service.main:app --reload --host 0.0.0.0 --port 8002
+```
+
+Run Recommendation:
+
+```powershell
+cd machine_learning
+$env:MODEL_PATH = "./trained_models/recommendation"
+uvicorn apps.recommendation_service.main:app --reload --host 0.0.0.0 --port 8003
+```
+
+## Running With Docker Compose (Recommended)
+
+The root `docker-compose.yml` defines `ml-soil` (enabled) and templates for `ml-weather` and `ml-recommendation` (commented). Start the stack from the repo root:
 
 ```bash
-docker build -t arice-ml-service .
-docker run -p 8001:8001 arice-ml-service
+docker compose up --build
 ```
 
-## API Endpoints
+## Configuration
 
-### Health Check
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Service health status |
-| `/models/status` | GET | ML models loading status |
+Common environment variables used by services:
 
-### Soil Analysis (`/api/soil`)
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/analyze` | POST | Analyze soil health, returns score (0-100) |
-| `/health-score-detailed` | POST | Detailed health scoring with parameter breakdown |
-| `/hybrid-forecast` | POST | Generate 3-month hybrid forecast |
-| `/realign-forecast` | POST | Realign forecast with new sensor data |
-| `/status` | GET | Soil service status |
-
-### Recommendation (`/api/recommend`)
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/variety` | POST | Get rice variety recommendations |
-
-### Weather (`/api/weather`)
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/forecast` | POST | Get weather forecast |
-
-## Training Models
-
-### Train Hybrid Soil Model
-```bash
-python scripts/train_hybrid_soil.py
-python scripts/train_hybrid_soil.py --data-path data/soil/synthetic_soil_timeseries.csv
+```
+MODEL_PATH=./trained_models/soil
+PYTHONPATH=./
 ```
 
-Output:
-```
-2026-01-04 21:48:39 | INFO | Starting training | Data: synthetic_soil_timeseries.csv
-2026-01-04 21:48:39 | INFO | Loaded 1460 records
-...
-=======================================================
-  Parameter Performance (Test R²)
-=======================================================
-  nitrogen_ppm           0.7108 ██████████████
-  phosphorus_ppm         0.6933 █████████████
-  ...
-=======================================================
-2026-01-04 21:48:49 | INFO | Training complete in 9.63s
-```
+Each service defaults `MODEL_PATH` to its own folder:
+- Soil: `./trained_models/soil`
+- Weather: `./trained_models/weather`
+- Recommendation: `./trained_models/recommendation`
 
-### Train Other Models
-```bash
-python scripts/train_recommendation.py
-python scripts/train_weather.py
-```
+## Model Artifacts
 
-## Environment Variables
+- Soil artifacts: `trained_models/soil/`
+- Weather artifacts: `trained_models/weather/`
+- Recommendation artifacts: `trained_models/recommendation/`
 
-```env
-ML_SERVICE_HOST=0.0.0.0
-ML_SERVICE_PORT=8001
-DEBUG=false
-MODELS_PATH=./trained_models
-```
+## Documentation
+- Documentation for each Machine Learning
 
 ## Testing
 
 ```bash
-# Run all tests
 pytest
-
-# Run with coverage
-pytest --cov=app --cov-report=html
-
-# Run specific test
-pytest tests/test_soil.py -v
+pytest machine_learning/tests -v
 ```
 
-## Dependencies
+## Notes on Training Scripts
 
-Key libraries:
-- **FastAPI** - Web framework
-- **scikit-learn** - Random Forest, metrics
-- **pandas/numpy** - Data processing
-- **joblib** - Model serialization
-- **Pydantic** - Data validation
-- **httpx** - HTTP client (for Backend→ML calls)
+`scripts/` contains training/utilities. Some scripts still reference a legacy `app/` package and may require updating before use.
+
+For model logic, prefer the service models directly:
+- Soil: `apps/soil_service/models/*`
+- Weather: `apps/weather_service/models/*`
+- Recommendation: `apps/recommendation_service/models/*`
 
 ## License
 
