@@ -17,6 +17,7 @@ from typing import Dict, Optional, Any, List
 from datetime import datetime, date, timedelta
 from uuid import UUID
 import uuid
+import logging
 
 from sqlalchemy.orm import Session
 
@@ -140,10 +141,13 @@ class SoilForecastController:
             reading_date=reading_date
         )
         
+        logger = logging.getLogger("uvicorn")
+
         # 8. Call ML Service based on strategy
         try:
             if strategy["should_realign"]:
                 # Realign existing forecast based on strategy
+                logger.info("[SoilForecast] Calling Soil ML realign_forecast")
                 ml_response = await self.ml_client.realign_forecast(
                     current_data=aggregated,
                     existing_forecast=active_forecast.get("forecast_data", {}),
@@ -163,6 +167,7 @@ class SoilForecastController:
                 )
             else:
                 # Generate new forecast
+                logger.info("[SoilForecast] Calling Soil ML generate_forecast")
                 ml_response = await self.ml_client.generate_forecast(
                     current_data=aggregated,
                     planting_date=request.planting_date
@@ -172,6 +177,7 @@ class SoilForecastController:
                 
         except Exception as e:
             # Fallback: generate forecast locally without ML service
+            logger.exception(f"[SoilForecast] ML call failed; using fallback forecast: {e}")
             ml_response = self.service.generate_fallback_forecast(
                 aggregated_data=aggregated,
                 planting_date=request.planting_date,

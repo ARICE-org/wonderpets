@@ -24,6 +24,8 @@ services:
       - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgre:5432/${POSTGRES_DB}
       - POSTGRES_HOST=postgre
       - POSTGRES_PORT=5432
+      # NOTE: Inside Docker networks, use service DNS, not localhost.
+      - SOIL_ML_URL=http://ml-soil:8001
     env_file:
       - ./.env
 
