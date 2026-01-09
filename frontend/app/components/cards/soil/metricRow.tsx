@@ -1,6 +1,6 @@
 import React from "react";
 import { HStack } from "@gluestack-ui/themed";
-import { SoilMetric } from "./soildata";
+import { SoilMetric } from "../../../Data/soildata";
 import MetricItem from "./metricItem";
 
 type MetricRowProps = {

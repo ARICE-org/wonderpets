@@ -1,9 +1,10 @@
 import React from "react";
 import { VStack, HStack, Text } from "@gluestack-ui/themed";
-import { TouchableOpacity } from "react-native";
-import { soilMetrics } from "./soildata";
+import { Pressable } from "react-native";
+import { soilMetrics } from "../../../Data/soildata";
 import MetricRow from "./metricRow";
 import StatusBar from "./statusBar";
+import { router } from "expo-router";
 
 export default function SoilSummary() {
   const row1 = soilMetrics.slice(0, 2);
@@ -20,11 +21,13 @@ export default function SoilSummary() {
         <Text fontSize="$xl" fontWeight="$bold" color="$black">
           Soil Summary
         </Text>
-        <TouchableOpacity onPress={() => console.log("Go to Soil Details")}>
+        <Pressable
+          onPress={() => router.push("/(tabs)/(stack)/soil/soilScreeen")}
+        >
           <Text fontSize="$2xl" fontWeight="$bold" color="$coolGray500">
             →
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </HStack>
       <MetricRow metrics={row1} />
       <MetricRow metrics={row2} />

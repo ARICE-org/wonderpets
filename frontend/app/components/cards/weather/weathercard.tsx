@@ -19,7 +19,7 @@ export default function WeatherCard({
 }: WeatherCardProps) {
   return (
     <BaseCard
-      w={100}
+      w={90}
       h={150}
       mx="$1"
       p="$0"

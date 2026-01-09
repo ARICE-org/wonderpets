@@ -7,8 +7,9 @@ import {
   Pressable,
   ScrollView,
 } from "@gluestack-ui/themed";
-import BaseCard from "../components/cards/baseCard";
+import BaseCard from "../../../components/cards/baseCard";
 import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -91,16 +92,23 @@ export default function CalendarScreen() {
   const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
   return (
-    <Box flex={1} bg="$white" px="$4" py="$4">
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#ffffff",
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+      }}
+    >
       {/* Back Button */}
-      <Pressable mb="$4" onPress={() => router.back()}>
+      <Pressable mb="$4" onPress={() => router.navigate("/MainScreen")}>
         <Text color="$green600" fontSize="$lg">
           ‹ Back
         </Text>
       </Pressable>
 
       {/* Title */}
-      <Text fontSize="$2xl" fontWeight="$bold" textAlign="center" mb="$4">
+      <Text fontSize="$2xl" fontWeight="$bold" textAlign="center" mb="$5">
         Farming Calendar
       </Text>
 
@@ -224,6 +232,6 @@ export default function CalendarScreen() {
           </ScrollView>
         </BaseCard>
       )}
-    </Box>
+    </SafeAreaView>
   );
 }
