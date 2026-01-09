@@ -4,7 +4,6 @@ import Header from "../../components/headCalendar"; // Calendar header
 import RiceRecommended from "../../components/cards/rice/riceRecommended";
 import WeatherForecast from "../../components/cards/weather/weatherforecast";
 import SoilSummary from "../../components/cards/soil/soilSummary";
-import forecastData from "../../Data/weatherdata";
 
 export default function MainScreen() {
   return (
@@ -15,7 +14,7 @@ export default function MainScreen() {
           {/* Rice Recommendations */}
           <RiceRecommended />
           {/* Weather Forecast */}
-          <WeatherForecast data={forecastData.daily} />
+          <WeatherForecast />
           {/*Soil*/}
           <SoilSummary />
           {/* Main Content */}

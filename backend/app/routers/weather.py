@@ -1,63 +1,67 @@
-from typing import List
-from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+"""Forecast endpoints for Weather Service."""
 
-from app.dependencies import get_db
-from app.models.weather_data import WeatherData as WeatherDataModel
-from app.schemas.weather_data import WeatherData, WeatherDataBase, WeatherDataCreate, WeatherDataUpdate
+import requests
+from fastapi import APIRouter, HTTPException, Query
 
+from app.utils.weather import process_forecast
 
 router = APIRouter(prefix="/weather", tags=["Weather"])
 
-@router.get("/", response_model=List[WeatherDataBase])
-def get_weather_data(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return db.query(WeatherDataModel).offset(skip).limit(limit).all()
 
-@router.get("/{weather_id}", response_model=WeatherData)
-def get_weather_record(weather_id: UUID, db: Session = Depends(get_db)):
-    weather = db.get(WeatherDataModel, weather_id)
-    if not weather:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Weather data not found")
-    return weather
+@router.get("/forecast/latest")
+async def get_latest_forecast(
+    latitude: float = Query(..., ge=-90, le=90, description="Latitude coordinate"),
+    longitude: float = Query(..., ge=-180, le=180, description="Longitude coordinate"),
+    days: int = Query(7, ge=1, le=42, description="Number of forecast days"),
+):
+    """
+    Get latest forecast for a location.
+    Returns ensemble mean + bias-corrected values.
+    Calls external API on port 5002.
+    """
+    try:
+        response = requests.get(
+            "http://localhost:5002/api/v1/forecast/latest",
+            params={
+                "latitude": latitude,
+                "longitude": longitude,
+                "days": days,
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+        return process_forecast(data)
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"External weather service error: {e}")
 
-@router.post("/", response_model=WeatherData, status_code=status.HTTP_201_CREATED)
-def create_weather_record(payload: WeatherDataCreate, db: Session = Depends(get_db)):
-    weather = WeatherDataModel(
-        date=payload.date,
-        max_temp=payload.max_temp,
-        min_temp=payload.min_temp,
-        rainfall=payload.rainfall,
-        humidity=payload.humidity,
-        wind_speed=payload.wind_speed,
-        wind_direct=payload.wind_direct,
-    )
-    db.add(weather)
-    db.commit()
-    db.refresh(weather)
-    return weather
 
-@router.put("/{weather_id}", response_model=WeatherData)
-def update_weather_record(weather_id: UUID, payload: WeatherDataUpdate, db: Session = Depends(get_db)):
-    weather = db.get(WeatherDataModel, weather_id)
-    if not weather:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Weather data not found")
+@router.get("/forecast/by-date")
+async def get_forecast_by_date(
+    latitude: float = Query(..., ge=-90, le=90, description="Latitude coordinate"),
+    longitude: float = Query(..., ge=-180, le=180, description="Longitude coordinate"),
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+):
+    """
+    Get forecasts for a specific date range.
+    Finds the best available run that covers the requested dates.
+    Calls external API on port 5002.
+    """
+    try:
+        response = requests.get(
+            "http://localhost:5002/api/v1/forecast/by-date",
+            params={
+                "latitude": latitude,
+                "longitude": longitude,
+                "start_date": start_date,
+                "end_date": end_date,
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+        return process_forecast(data)
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"External weather service error: {e}")
 
-    data = payload.model_dump(exclude_unset=True)
-    # Since we used aliases (camelCase), ensure we access by field names
-    for field, value in data.items():
-        setattr(weather, field, value)
-
-    db.add(weather)
-    db.commit()
-    db.refresh(weather)
-    return weather
-
-@router.delete("/{weather_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_weather_record(weather_id: UUID, db: Session = Depends(get_db)):
-    weather = db.get(WeatherDataModel, weather_id)
-    if not weather:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Weather data not found")
-    db.delete(weather)
-    db.commit()
-    db.refresh(weather)
