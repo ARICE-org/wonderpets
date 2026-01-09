@@ -86,7 +86,7 @@ For development mode
       ```
    3. Activate Virtual Environment
       ```bash
-      .venv\Scripts\Activate
+      .venv\Scripts\Activate.ps1
       ```
    4. Install required dependencies
       ```bash
@@ -114,6 +114,39 @@ For development mode
       npx expo start
       ```
 
+4. **Run `Machine Learning` services (FastAPI microservices)**
+
+   The Backend calls these services. You can run them locally for development.
+
+   1. Move to machine_learning directory
+      ```bash
+      cd machine_learning
+      ```
+   2. Initialize Virtual Environment
+      ```bash
+      python -m venv .venv
+      ```
+   3. Activate Virtual Environment
+      ```bash
+      .venv\Scripts\Activate.ps1
+      ```
+   4. Install required dependencies
+      ```bash
+      pip install -r requirements.txt
+      ```
+   5. Run Soil ML Service (port 8001)
+      ```bash
+      uvicorn apps.soil_service.main:app --reload --host 0.0.0.0 --port 8001
+      ```
+   6. (Optional) Run Weather ML Service (port 8002)
+      ```bash
+      uvicorn apps.weather_service.main:app --reload --host 0.0.0.0 --port 8002
+      ```
+   7. (Optional) Run Recommendation ML Service (port 8003)
+      ```bash
+      uvicorn apps.recommendation_service.main:app --reload --host 0.0.0.0 --port 8003
+      ```
+
 [//]: # "### Running Scripts "
 [//]: #
 [//]: # "**Running both frontend and backend environments**"
@@ -139,7 +172,7 @@ For development mode
 
 ## Architecture Review (Project File Structure)
 
-The project is a monorepo with a client-server architecture, organized into three main directories:
+The project is a monorepo with a client-server architecture, organized into three main directories (Frontend, Backend, Machine Learning) plus scripts:
 
 ```
 /ARICE
@@ -164,6 +197,12 @@ The project is a monorepo with a client-server architecture, organized into thre
 |   |-- app.json     # Expo configuration file
 |   `-- package.json # NPM dependencies and scripts
 |
+|-- machine_learning/ # ML microservices (FastAPI)
+|   |-- apps/
+|       |-- soil_service/           # Soil health + hybrid forecasting
+|       |-- weather_service/         # Weather forecasting
+|       `-- recommendation_service/  # Rice variety recommendation
+|
 |-- scripts/         # PowerShell scripts for managing the dev environment
     |-- dev.ps1      # Starts both backend and frontend servers
     |-- stop-dev.ps1 # Stops all development processes
@@ -175,9 +214,10 @@ The project is a monorepo with a client-server architecture, organized into thre
 
 ## Key Features
 
-- **Architecture Design**: A decoupled monorepo architecture with a Python backend and a React Native (Expo) frontend. Communication occurs via a REST API, allowing the frontend and backend to be developed, tested, and deployed independently.
+- **Architecture Design**: A decoupled monorepo architecture with a Python backend, an Expo (React Native) frontend, and dedicated Machine Learning microservices. Communication occurs via REST APIs; the frontend calls the backend, and the backend orchestrates calls to the ML services.
 - **Frontend Stack**: Built with **Expo** and **React Native**, enabling cross-platform development for web, iOS, and Android from a single codebase. It uses file-based routing for navigation and includes a component-based structure for maintainability.
 - **Database Integration**: The backend uses **SQLAlchemy** as its ORM for database-agnostic data modeling. It is configured to use **Alembic** for local development and can be easily switched to a production database like **PostgreSQL** by changing the `DATABASE_URL` environment variable.
+- **Machine Learning Services**: Independent FastAPI services for Soil (health scoring + hybrid forecasting), Weather forecasting, and Rice variety Recommendation.
 
 ## Git Flow Integration
 
