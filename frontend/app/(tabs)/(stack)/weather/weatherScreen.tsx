@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import LocationLabel from "../../../components/cards/weather/locationlabel";
 import CurrentWeather from "../../../components/cards/weather/currentweather";
 // import HourlyForecast from "../../../components/cards/weather/hourlyforecast";
-import WeatherForecast from "@/app/components/cards/weather/weatherforecast";
+import WeatherForecast from "../../../components/cards/weather/weatherforecast";
 import forecastData from "../../../Data/weatherdata";
 
 export default function WeatherScreen() {
