@@ -9,9 +9,14 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int
     CORS_ORIGINS: str
     
-    # ML Service Configuration
+    # ML Service Configuration (Legacy - single URL for backward compatibility)
     ML_SERVICE_URL: str = "http://localhost:8001"  
     ML_SERVICE_TIMEOUT: int = 30  
+    
+    # Per-domain ML Service URLs (new architecture)
+    SOIL_ML_URL: Optional[str] = None  # Falls back to ML_SERVICE_URL if not set
+    WEATHER_ML_URL: Optional[str] = None  # Falls back to ML_SERVICE_URL if not set
+    RECOMMENDATION_ML_URL: Optional[str] = None  # Falls back to ML_SERVICE_URL if not set
     
     # Rate Limiting Configuration
     RATE_LIMIT_STANDARD_REQUESTS: int = 100  

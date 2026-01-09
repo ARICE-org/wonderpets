@@ -1,0 +1,3 @@
+"""
+Weather service tests module.
+"""

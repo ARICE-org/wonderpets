@@ -5,6 +5,10 @@ from pydantic import BaseModel
 from app.config.settings import settings
 
 
+# ============================================================================
+# Response Models
+# ============================================================================
+
 class MLForecastResponse(BaseModel):
     """Response from ML service forecast endpoints."""
     planting_date: str
@@ -47,11 +51,38 @@ class MLHealthScoreResponse(BaseModel):
     parameter_scores: Dict[str, float]
 
 
-class MLServiceClient:
+# ============================================================================
+# Base ML Client
+# ============================================================================
+
+class BaseMLClient:
+    """Base class for ML service clients with common functionality."""
+    
+    def __init__(self, base_url: str, timeout: float = 30.0):
+        self.base_url = base_url
+        self.timeout = timeout
+    
+    async def health_check(self) -> bool:
+        """Check if ML service is available and healthy."""
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{self.base_url}/health")
+                return response.status_code == 200
+        except Exception:
+            return False
+
+
+# ============================================================================
+# Soil ML Client
+# ============================================================================
+
+class SoilMLClient(BaseMLClient):
+    """Client for Soil ML Service (port 8001)."""
     
     def __init__(self, base_url: Optional[str] = None):
-        self.base_url = base_url or getattr(settings, 'ML_SERVICE_URL', 'http://localhost:8001')
-        self.timeout = 30.0  # seconds
+        # Use SOIL_ML_URL if set, otherwise fall back to ML_SERVICE_URL
+        url = base_url or settings.SOIL_ML_URL or settings.ML_SERVICE_URL
+        super().__init__(url)
     
     async def generate_forecast(
         self,
@@ -74,7 +105,7 @@ class MLServiceClient:
         """
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                f"{self.base_url}/api/soil/hybrid-forecast",
+                f"{self.base_url}/api/v1/soil/hybrid-forecast",
                 json={
                     "current_soil_data": self._format_current_data(current_data),
                     "planting_date": planting_date.isoformat() if isinstance(planting_date, date) else planting_date,
@@ -104,7 +135,7 @@ class MLServiceClient:
         """
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                f"{self.base_url}/api/soil/realign-forecast",
+                f"{self.base_url}/api/v1/soil/realign-forecast",
                 json={
                     "current_data": current_data,
                     "existing_forecast": existing_forecast,
@@ -129,25 +160,11 @@ class MLServiceClient:
         """
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                f"{self.base_url}/api/soil/health-score",
+                f"{self.base_url}/api/v1/soil/analyze",
                 json={"soil_data": soil_data}
             )
             response.raise_for_status()
             return MLHealthScoreResponse(**response.json())
-    
-    async def health_check(self) -> bool:
-        """
-        Check if ML service is available and healthy.
-        
-        Returns:
-            True if service is healthy, False otherwise
-        """
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{self.base_url}/health")
-                return response.status_code == 200
-        except Exception:
-            return False
     
     def _format_current_data(self, current_data: Dict) -> Dict:
         """
@@ -179,11 +196,135 @@ class MLServiceClient:
         return formatted
 
 
-# Factory function for dependency injection
+# ============================================================================
+# Weather ML Client
+# ============================================================================
+
+class WeatherMLClient(BaseMLClient):
+    """Client for Weather ML Service (port 8002)."""
+    
+    def __init__(self, base_url: Optional[str] = None):
+        # Use WEATHER_ML_URL if set, otherwise fall back to ML_SERVICE_URL
+        url = base_url or settings.WEATHER_ML_URL or settings.ML_SERVICE_URL
+        super().__init__(url)
+    
+    async def get_forecast(
+        self,
+        location: Dict[str, float],
+        forecast_days: int = 7
+    ) -> Dict[str, Any]:
+        """
+        Get weather forecast for a location.
+        
+        Args:
+            location: Dict with 'latitude' and 'longitude'
+            forecast_days: Number of days to forecast
+            
+        Returns:
+            Weather forecast data
+        """
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"{self.base_url}/api/v1/weather/forecast",
+                json={
+                    "location": location,
+                    "forecast_days": forecast_days
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+
+
+# ============================================================================
+# Recommendation ML Client
+# ============================================================================
+
+class RecommendationMLClient(BaseMLClient):
+    """Client for Recommendation ML Service (port 8003)."""
+    
+    def __init__(self, base_url: Optional[str] = None):
+        # Use RECOMMENDATION_ML_URL if set, otherwise fall back to ML_SERVICE_URL
+        url = base_url or settings.RECOMMENDATION_ML_URL or settings.ML_SERVICE_URL
+        super().__init__(url)
+    
+    async def get_recommendations(
+        self,
+        soil_data: Dict[str, Any],
+        weather_data: Optional[Dict[str, Any]] = None,
+        preferences: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Get rice variety recommendations.
+        
+        Args:
+            soil_data: Current soil conditions
+            weather_data: Optional weather forecast data
+            preferences: Optional user preferences
+            
+        Returns:
+            Recommendation results
+        """
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"{self.base_url}/api/v1/recommendation/varieties",
+                json={
+                    "soil_data": soil_data,
+                    "weather_data": weather_data,
+                    "preferences": preferences
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+
+
+# ============================================================================
+# Legacy MLServiceClient (backward compatibility)
+# ============================================================================
+
+class MLServiceClient(SoilMLClient):
+    """
+    Legacy ML Service Client for backward compatibility.
+    
+    This class is an alias for SoilMLClient since the original client
+    was soil-specific in practice. New code should use the domain-specific
+    clients (SoilMLClient, WeatherMLClient, RecommendationMLClient).
+    """
+    pass
+
+
+# ============================================================================
+# Factory Functions
+# ============================================================================
+
+def get_soil_ml_client() -> SoilMLClient:
+    """Get Soil ML service client instance."""
+    return SoilMLClient()
+
+
+def get_weather_ml_client() -> WeatherMLClient:
+    """Get Weather ML service client instance."""
+    return WeatherMLClient()
+
+
+def get_recommendation_ml_client() -> RecommendationMLClient:
+    """Get Recommendation ML service client instance."""
+    return RecommendationMLClient()
+
+
+# Legacy factory function for backward compatibility
 def get_ml_client() -> MLServiceClient:
-    """Get ML service client instance."""
+    """Get ML service client instance (legacy - use domain-specific clients)."""
     return MLServiceClient()
 
 
-# Singleton instance for simple use cases
+# ============================================================================
+# Singleton Instances
+# ============================================================================
+
+# Domain-specific clients
+soil_ml_client = SoilMLClient()
+weather_ml_client = WeatherMLClient()
+recommendation_ml_client = RecommendationMLClient()
+
+# Legacy singleton for backward compatibility
 ml_client = MLServiceClient()

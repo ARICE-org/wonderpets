@@ -1,0 +1,3 @@
+"""
+Recommendation service tests module.
+"""
