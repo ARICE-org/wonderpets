@@ -11,7 +11,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app:/code/app./backend/app:/code/app
+      - ./backend/app:/code/app
     develop:
       watch:
         - action: sync # live sync files into container
@@ -20,7 +20,10 @@ services:
         - action: rebuild
           path: requirements.txt # trigger rebuild if deps change
     environment:
-      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      # NOTE: Use Docker service DNS + internal Postgres port.
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgre:5432/${POSTGRES_DB}
+      - POSTGRES_HOST=postgre
+      - POSTGRES_PORT=5432
     env_file:
       - ./.env
 
@@ -48,18 +51,72 @@ services:
       - postgre_data:/var/lib/postgresql/data
       # - ./backend/db/init:/docker-entrypoint-initdb.d
 
-  pgadmin:
-    image: dpage/pgadmin4
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - postgre
+  #   volumes:
+  #     - pgadmin_data:/var/lib/pgadmin
+
+  # ML Soil Service (isolated) - DDD Architecture
+  ml-soil:
+    build:
+      context: ./machine_learning
+      dockerfile: Dockerfile
     restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - "8080:80"
-    depends_on:
-      - postgre
+      - "8001:8001"
     volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - ./machine_learning/apps:/code/apps
+      - ./machine_learning/trained_models:/code/trained_models
+    environment:
+      - MODEL_PATH=/code/trained_models
+      - PYTHONPATH=/code
+    env_file:
+      - ./.env
+    command: uvicorn apps.soil_service.main:app --host 0.0.0.0 --port 8001
+
+  # ML Weather Service (isolated) - DDD Architecture
+  # ml-weather:
+  #   build:
+  #     context: ./machine_learning
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "8002:8002"
+  #   volumes:
+  #     - ./machine_learning/apps:/code/apps
+  #     - ./machine_learning/trained_models:/code/trained_models
+  #   environment:
+  #     - MODEL_PATH=/code/trained_models
+  #     - PYTHONPATH=/code
+  #   env_file:
+  #     - ./.env
+  #   command: uvicorn apps.weather_service.main:app --host 0.0.0.0 --port 8002
+
+  # ML Recommendation Service (isolated) - DDD Architecture
+  # ml-recommendation:
+  #   build:
+  #     context: ./machine_learning
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "8003:8003"
+  #   volumes:
+  #     - ./machine_learning/apps:/code/apps
+  #     - ./machine_learning/trained_models:/code/trained_models
+  #   environment:
+  #     - MODEL_PATH=/code/trained_models
+  #     - PYTHONPATH=/code
+  #   env_file:
+  #     - ./.env
+  #   command: uvicorn apps.recommendation_service.main:app --host 0.0.0.0 --port 8003
 
 volumes:
   postgre_data:
