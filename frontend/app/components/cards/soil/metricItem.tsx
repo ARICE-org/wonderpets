@@ -1,53 +1,74 @@
 import React from "react";
-import { HStack, VStack, Text, Center } from "@gluestack-ui/themed";
+import { HStack, VStack, Text, Box } from "@gluestack-ui/themed";
+import { Ionicons } from "@expo/vector-icons";
 import { SoilMetric } from "../../../Data/soildata";
 
-type MetricItemProps = Omit<SoilMetric, "id" | "color">;
+type SoilItemProps = Omit<SoilMetric, "id" | "color">;
 
-const MetricItem = ({ label, value, unit, status }: MetricItemProps) => {
-  let icon: string;
-  let iconColor: string;
+const statusConfig = {
+  good: {
+    color: "#22C55E",
+    icon: "checkmark" as const,
+  },
+  warning: {
+    color: "#F97316",
+    icon: "alert" as const,
+  },
+  bad: {
+    color: "#EF4444",
+    icon: "close" as const,
+  },
+};
 
-  switch (status) {
-    case "good":
-      icon = "✓";
-      iconColor = "$green600";
-      break;
-    case "warning":
-      icon = "!";
-      iconColor = "$orange600";
-      break;
-    case "bad":
-      icon = "X";
-      iconColor = "$red600";
-      break;
-    default:
-      icon = "?";
-      iconColor = "$coolGray600";
-  }
+const SoilItem = ({ label, value, unit, status }: SoilItemProps) => {
+  const config = statusConfig[status] || statusConfig.good;
+  const { color, icon } = config;
 
   return (
-    <HStack space="sm" alignItems="center" width="50%">
-      <Center width={40} height={40} borderRadius="$full" bg={`${iconColor}20`}>
-        <Text fontSize="$xl" fontWeight="$bold" color={iconColor}>
-          {icon}
+    <HStack space="md" alignItems="center" width="48%" mb="$4">
+      {/* Circular Badge with Border */}
+      <Box
+        width={42}
+        height={42}
+        borderRadius="$full"
+        borderWidth={2}
+        borderColor={color}
+        alignItems="center"
+        justifyContent="center"
+        bg="$white"
+      >
+        <Ionicons name={icon} size={22} color={color} />
+      </Box>
+
+      {/* Label and Value Stack */}
+      <VStack flex={1}>
+        <Text
+          fontSize={16}
+          fontWeight="$bold"
+          style={{ color }}
+          numberOfLines={1}
+        >
+          {label}
         </Text>
-      </Center>
-      <VStack>
-        <HStack alignItems="flex-end">
-          <Text fontSize="$xl" fontWeight="$bold" color={iconColor}>
+        <HStack alignItems="baseline" space="xs">
+          <Text
+            fontSize={14}
+            fontWeight="$semibold"
+            style={{ color }}
+          >
             {value}
           </Text>
-          <Text fontSize="$sm" fontWeight="$medium" color={iconColor} mb="$0.5">
+          <Text
+            fontSize={12}
+            fontWeight="$medium"
+            style={{ color }}
+          >
             {unit}
           </Text>
         </HStack>
-        <Text fontSize="$sm" color="$coolGray600">
-          {label}
-        </Text>
       </VStack>
     </HStack>
   );
 };
 
-export default MetricItem;
+export default SoilItem;

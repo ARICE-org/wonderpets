@@ -9,7 +9,7 @@ import { useRice } from "../../../context/riceContext";
 
 export default function MainScreen() {
   const { riceList } = useRice();
-  
+
   // Check if any rice is planted (isPlanting = true if at least one is planted)
   const isPlanting = riceList.some((rice) => rice.planted);
 

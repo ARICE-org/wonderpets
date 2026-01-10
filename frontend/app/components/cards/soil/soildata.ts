@@ -13,7 +13,7 @@ export const fallbackSoilMetrics: SoilMetric[] = [
   { id: 'n', label: 'Nitrogen', value: '15', unit: 'ppm', status: 'good', color: '$green600' },
   { id: 'p', label: 'Phosphorus', value: '49', unit: 'ppm', status: 'warning', color: '$orange600' },
   { id: 'k', label: 'Potassium', value: '120', unit: 'ppm', status: 'good', color: '$green600' },
-  { id: 'ph', label: 'soil Acidity', value: '5.8', unit: 'pH', status: 'warning', color: '$orange600' },
+  { id: 'ph', label: 'Soil Acidity', value: '5.8', unit: 'pH', status: 'warning', color: '$orange600' },
 ];
 
 function scoreToStatus(score: number) {
@@ -40,32 +40,32 @@ export function transformForecastToMetrics(w: WeeklyForecastData): SoilMetric[] 
       label: 'Nitrogen',
       value: String(w.nitrogenPpm ?? 0),
       unit: 'ppm',
-      status: scoreToStatus(w.healthScore),
-      color: statusToColor(scoreToStatus(w.healthScore)),
+      status: w.nitrogenStatus ?? 'good',
+      color: statusToColor(w.nitrogenStatus ?? 'good'),
     },
     {
       id: 'p',
       label: 'Phosphorus',
       value: String(w.phosphorusPpm ?? 0),
       unit: 'ppm',
-      status: scoreToStatus(w.healthScore),
-      color: statusToColor(scoreToStatus(w.healthScore)),
+      status: w.phosphorusStatus ?? 'good',
+      color: statusToColor(w.phosphorusStatus ?? 'good'),
     },
     {
       id: 'k',
       label: 'Potassium',
       value: String(w.potassiumMeq ?? 0),
       unit: 'meq',
-      status: scoreToStatus(w.healthScore),
-      color: statusToColor(scoreToStatus(w.healthScore)),
+      status: w.potassiumStatus ?? 'good',
+      color: statusToColor(w.potassiumStatus ?? 'good'),
     },
     {
       id: 'ph',
-      label: 'soil Acidity',
+      label: 'Soil Acidity',
       value: String(w.pH ?? 0),
       unit: 'pH',
-      status: w.pH >= 6 && w.pH <= 7.5 ? 'good' : scoreToStatus(w.healthScore),
-      color: statusToColor(w.pH >= 6 && w.pH <= 7.5 ? 'good' : scoreToStatus(w.healthScore)),
+      status: w.phStatus ?? 'good',
+      color: statusToColor(w.phStatus ?? 'good'),
     },
   ];
   return metrics;

@@ -7,6 +7,7 @@ import { API_CONFIG } from './config';
 import { ApiError } from './errors';
 import type { RequestOptions } from './types';
 import { requestInterceptors, responseInterceptors } from './interceptors';
+import { toastService } from '../services/toast.service';
 
 /**
  * Build URL with query parameters
@@ -40,19 +41,17 @@ async function parseErrorResponse(response: Response): Promise<ApiError> {
 
   try {
     const errorData = await response.json();
-    // Handle FastAPI error format
     message = errorData.message || errorData.detail || message;
     detail = errorData.detail || errorData;
     code = errorData.code;
   } catch {
-    // Response body is not JSON, try to read as text
     try {
       const textContent = await response.text();
       if (textContent) {
         message = textContent;
       }
     } catch {
-      // Unable to read response body
+      // Ignored
     }
   }
 
@@ -66,17 +65,27 @@ async function parseErrorResponse(response: Response): Promise<ApiError> {
 
 /**
  * Core request function with full configuration
- * Handles all HTTP requests with interceptors, error handling, and timeouts
  */
 async function request<TResponse, TBody = unknown>(
   options: RequestOptions<TBody>
 ): Promise<TResponse> {
-  const { method, endpoint, body, headers, params, timeout, signal } = options;
+  const {
+    method,
+    endpoint,
+    body,
+    headers,
+    params,
+    timeout,
+    signal,
+    toastUploadingMessage,
+    toastSuccessMessage,
+    toastErrorMessage,
+    onSuccess,
+    onError
+  } = options;
 
-  // Build the full URL
   const url = buildUrl(endpoint, params);
 
-  // Prepare request configuration
   let config: RequestInit & { url: string } = {
     url,
     method,
@@ -86,24 +95,25 @@ async function request<TResponse, TBody = unknown>(
     },
   };
 
-  // Add body for non-GET requests
   if (body !== undefined && method !== 'GET') {
     config.body = JSON.stringify(body);
   }
 
-  // Apply request interceptors
   for (const interceptor of requestInterceptors) {
     config = await interceptor(config);
   }
 
-  // Create abort controller for timeout
   const controller = new AbortController();
   const timeoutDuration = timeout || API_CONFIG.TIMEOUT;
   const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
 
-  // Merge abort signals if one was provided
   if (signal) {
     signal.addEventListener('abort', () => controller.abort());
+  }
+
+  let loadingToastId: string | null = null;
+  if (toastUploadingMessage) {
+    loadingToastId = toastService.showLoading(toastUploadingMessage);
   }
 
   try {
@@ -112,33 +122,46 @@ async function request<TResponse, TBody = unknown>(
       signal: controller.signal,
     });
 
-    // Apply response interceptors
     for (const interceptor of responseInterceptors) {
       response = await interceptor(response);
     }
 
-    // Handle non-OK responses
     if (!response.ok) {
       throw await parseErrorResponse(response);
     }
 
-    // Handle empty responses (204 No Content)
+    let data: any;
+
     if (response.status === 204) {
-      return undefined as TResponse;
+      data = undefined;
+    } else {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
     }
 
-    // Check content type before parsing
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      const data: TResponse = await response.json();
-      return data;
-    }
+    const typedData = data as TResponse;
 
-    // Return text for non-JSON responses
-    const text = await response.text();
-    return text as TResponse;
+    if (loadingToastId) toastService.close(loadingToastId);
+    if (toastSuccessMessage) {
+      toastService.showSuccess(toastSuccessMessage);
+    }
+    if (onSuccess) onSuccess(typedData);
+
+    return typedData;
   } catch (error) {
-    // Handle abort/timeout errors
+    if (loadingToastId) toastService.close(loadingToastId);
+
+    const finalErrorMessage = toastErrorMessage || (error instanceof ApiError ? error.message : 'An error occurred');
+    if (toastErrorMessage || (error instanceof ApiError && error.status !== 0)) {
+      toastService.showError(finalErrorMessage);
+    }
+
+    if (onError) onError(error);
+
     if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError({
         status: 0,
@@ -147,7 +170,6 @@ async function request<TResponse, TBody = unknown>(
       });
     }
 
-    // Handle network errors
     if (error instanceof TypeError && error.message === 'Network request failed') {
       throw new ApiError({
         status: 0,
@@ -156,12 +178,10 @@ async function request<TResponse, TBody = unknown>(
       });
     }
 
-    // Re-throw ApiErrors as-is
     if (error instanceof ApiError) {
       throw error;
     }
 
-    // Wrap unknown errors
     throw new ApiError({
       status: 0,
       message: error instanceof Error ? error.message : 'An unknown error occurred',
@@ -174,13 +194,6 @@ async function request<TResponse, TBody = unknown>(
 
 /**
  * HTTP GET request
- * @param endpoint - API endpoint (relative or absolute URL)
- * @param config - Optional request configuration
- * @returns Promise resolving to the typed response
- *
- * @example
- * const user = await GET<User>('/api/v1/users/123');
- * const users = await GET<User[]>('/api/v1/users', { params: { page: 1 } });
  */
 export async function GET<TResponse>(
   endpoint: string,
@@ -195,13 +208,6 @@ export async function GET<TResponse>(
 
 /**
  * HTTP POST request
- * @param endpoint - API endpoint (relative or absolute URL)
- * @param body - Request body to be JSON serialized
- * @param config - Optional request configuration
- * @returns Promise resolving to the typed response
- *
- * @example
- * const user = await POST<User, CreateUserDto>('/api/v1/users', { name: 'John' });
  */
 export async function POST<TResponse, TBody = unknown>(
   endpoint: string,
@@ -218,13 +224,6 @@ export async function POST<TResponse, TBody = unknown>(
 
 /**
  * HTTP PUT request
- * @param endpoint - API endpoint (relative or absolute URL)
- * @param body - Request body to be JSON serialized
- * @param config - Optional request configuration
- * @returns Promise resolving to the typed response
- *
- * @example
- * const user = await PUT<User, UpdateUserDto>('/api/v1/users/123', { name: 'Jane' });
  */
 export async function PUT<TResponse, TBody = unknown>(
   endpoint: string,
@@ -241,13 +240,6 @@ export async function PUT<TResponse, TBody = unknown>(
 
 /**
  * HTTP PATCH request
- * @param endpoint - API endpoint (relative or absolute URL)
- * @param body - Request body to be JSON serialized
- * @param config - Optional request configuration
- * @returns Promise resolving to the typed response
- *
- * @example
- * const user = await PATCH<User, Partial<User>>('/api/v1/users/123', { name: 'Jane' });
  */
 export async function PATCH<TResponse, TBody = unknown>(
   endpoint: string,
@@ -264,13 +256,6 @@ export async function PATCH<TResponse, TBody = unknown>(
 
 /**
  * HTTP DELETE request
- * @param endpoint - API endpoint (relative or absolute URL)
- * @param config - Optional request configuration
- * @returns Promise resolving to the typed response (often void)
- *
- * @example
- * await DELETE('/api/v1/users/123');
- * const result = await DELETE<DeleteResponse>('/api/v1/users/123');
  */
 export async function DELETE<TResponse = void>(
   endpoint: string,
@@ -283,5 +268,4 @@ export async function DELETE<TResponse = void>(
   });
 }
 
-// Export the raw request function for advanced use cases
 export { request };

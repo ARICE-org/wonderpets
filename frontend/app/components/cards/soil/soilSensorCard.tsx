@@ -5,6 +5,7 @@ import { Pressable } from "react-native";
 import { router } from "expo-router";
 
 interface soilSensorCardProps {
+  id: string;
   label: string;
   status: "Online" | "Offline" | "Cannot Find Device";
   inUse?: boolean;
@@ -12,6 +13,7 @@ interface soilSensorCardProps {
 }
 
 export default function soilSensorCard({
+  id,
   label,
   status,
   inUse = false,
@@ -20,7 +22,16 @@ export default function soilSensorCard({
   return (
     <>
       <Pressable
-        onPress={() => router.navigate("/(tabs)/(stack)/soil/sensorScreen")}
+        onPress={() =>
+          router.navigate({
+            pathname: "/(tabs)/(stack)/soil/sensorScreen",
+            params: {
+              sensorUuid: id,
+              label: label,
+              status: status,
+            },
+          })
+        }
       >
         <BaseCard
           mx="$1"
@@ -46,8 +57,8 @@ export default function soilSensorCard({
                 status === "Online"
                   ? "$green500"
                   : status === "Cannot Find Device"
-                  ? "$red500"
-                  : "$gray500"
+                    ? "$red500"
+                    : "$gray500"
               }
             >
               {status}

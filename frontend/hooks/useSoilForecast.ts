@@ -1,10 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
 import { soilForecastService } from '../lib/api/services/soil-forecast.service';
 import { isApiError } from '../lib/api';
-import type { SoilForecastResponse } from '../lib/api/services/soil-forecast.types';
+import type { SoilForecastResponse, WeeklyForecastData } from '../lib/api/services/soil-forecast.types';
 
 interface UseSoilForecastState {
   data: SoilForecastResponse | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+interface UseWeeklyForecastState {
+  data: WeeklyForecastData | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -82,3 +89,46 @@ export function useSoilForecast(
 }
 
 export default useSoilForecast;
+
+/**
+ * Hook to fetch only the current week's soil forecast
+ */
+export function useWeeklyForecast(
+  farmerId: string,
+  autoFetch = true
+): UseWeeklyForecastState {
+  const [data, setData] = useState<WeeklyForecastData | null>(null);
+  const [loading, setLoading] = useState(autoFetch);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchWeekly = useCallback(async () => {
+    if (!farmerId) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await soilForecastService.getWeeklyForecast(farmerId);
+      setData(response);
+    } catch (err) {
+      if (isApiError(err)) {
+        setError(err.message);
+      } else {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [farmerId]);
+
+  useEffect(() => {
+    if (autoFetch) {
+      fetchWeekly();
+    }
+  }, [farmerId, autoFetch, fetchWeekly]);
+
+  const refetch = useCallback(async () => {
+    await fetchWeekly();
+  }, [fetchWeekly]);
+
+  return { data, loading, error, refetch };
+}

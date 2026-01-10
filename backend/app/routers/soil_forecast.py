@@ -19,6 +19,7 @@ from app.schemas.soil_forecast import (
     GetForecastResponse,
     HealthScoreResponse,
     ReadingHistoryResponse,
+    WeeklyForecast,
 )
 
 
@@ -145,3 +146,19 @@ async def get_reading_history(
         farm_id=farmer_id,
         limit=limit
     )
+
+
+@router.get(
+    "/weekly-forecast/{farmer_id}",
+    response_model=Optional[WeeklyForecast],
+    summary="Get forecast for the current week",
+    description="""
+    Retrieve the soil forecast for the current week based on height/date of planting.
+    """
+)
+async def get_current_week_forecast(
+    farmer_id: UUID,
+    db: Session = Depends(get_db),
+) -> Optional[WeeklyForecast]:
+    """Get forecast for the current week for a farmer."""
+    return await soil_forecast_controller.get_current_week_forecast(db=db, farm_id=farmer_id)

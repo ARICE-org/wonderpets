@@ -331,6 +331,14 @@ class SoilAnalysisService:
         for current_name, ml_name in param_mapping.items():
             if current_name in soil_dict and soil_dict[current_name] is not None:
                 base_val = soil_dict[current_name]
+                
+                # Unit Check/Conversion
+                if current_name == 'potassium':
+                    # If value is > 20, assume it's in PPM/kg-ha range and convert to meq/100g
+                    # Conversion: meq = ppm / 391 (approx for K)
+                    if base_val > 10:
+                        base_val = base_val / 391.0
+                
                 historical[ml_name] = list(
                     base_val + np.random.normal(0, base_val * 0.05, 30)
                 )
@@ -383,6 +391,13 @@ class SoilAnalysisService:
             
             row['soil_health_score'] = 70.0
             row['health_category'] = 'Good'
+            
+            # Add default status fields for fallback consistency
+            row['nitrogenStatus'] = 'good'
+            row['phosphorusStatus'] = 'good'
+            row['potassiumStatus'] = 'good'
+            row['phStatus'] = 'good'
+            
             forecasts.append(row)
         
         return {

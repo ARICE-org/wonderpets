@@ -448,6 +448,10 @@ class SoilForecastService:
                     organic_matter_pct=week_data.get("organic_matter_pct"),
                     health_score=health_score,
                     health_category=self.get_health_category(health_score),
+                    nitrogen_status=week_data.get("nitrogenStatus", "good"),
+                    phosphorus_status=week_data.get("phosphorusStatus", "good"),
+                    potassium_status=week_data.get("potassiumStatus", "good"),
+                    ph_status=week_data.get("phStatus", "good"),
                     realigned=week_data.get("realigned", False),
                     correction_applied=week_data.get("correction_applied")
                 ))
@@ -607,6 +611,12 @@ class SoilForecastService:
             week_health = self.calculate_health_score(week_data)
             week_data["soil_health_score"] = week_health
             week_data["health_category"] = self.get_health_category(week_health).value
+            
+            # Add default status fields for fallback consistency
+            week_data["nitrogenStatus"] = "good"
+            week_data["phosphorusStatus"] = "good"
+            week_data["potassiumStatus"] = "good"
+            week_data["phStatus"] = "good"
             
             weekly_summary.append(week_data)
         
