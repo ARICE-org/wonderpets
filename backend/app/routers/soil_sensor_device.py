@@ -1,7 +1,7 @@
 from app.packages.decorators.search_helpers import searchable
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import uuid
 
 from app.dependencies import get_db
@@ -59,7 +59,7 @@ def read_soil_sensor(
 def list_soil_sensors(
     skip: int = 0,
     limit: int = 100,
-    status: bool = True,
+    status: Optional[bool] = None,
     db: Session = Depends(get_db),
     search: str = None
 ):

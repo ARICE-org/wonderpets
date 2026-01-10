@@ -1,12 +1,28 @@
 import React from "react";
 import { VStack, HStack, Text } from "@gluestack-ui/themed";
-import { Pressable } from "react-native";
-import { soilMetrics } from "../../../Data/soildata";
+import { TouchableOpacity, Pressable } from "react-native";
+import { useSoilForecast } from "../../../../hooks/useSoilForecast";
+import { transformForecastToMetrics, fallbackSoilMetrics } from "./soildata";
 import MetricRow from "./metricRow";
 import StatusBar from "./statusBar";
 import { router } from "expo-router";
 
-export default function SoilSummary() {
+interface SoilSummaryProps {
+  farmerId?: string;
+}
+
+export default function SoilSummary({ 
+  farmerId = "b4c478ad-ca81-4576-aed1-0a6f828b8602" 
+}: SoilSummaryProps) {
+  // Fetch real data from API
+  const { data: forecast } = useSoilForecast(farmerId);
+
+  // Get metrics from API or use fallback
+  const soilMetrics = 
+    forecast && forecast.weeklyForecast.length > 0
+      ? transformForecastToMetrics(forecast.weeklyForecast[0])
+      : fallbackSoilMetrics;
+
   const row1 = soilMetrics.slice(0, 2);
   const row2 = soilMetrics.slice(2, 4);
 
