@@ -3,6 +3,7 @@ import { Box, VStack, Text, ScrollView } from "@gluestack-ui/themed";
 import Header from "../../components/headCalendar"; // Calendar header
 import RiceRecommended from "../../components/cards/rice/riceRecommended";
 import WeatherForecast from "../../components/cards/weather/weatherforecast";
+import SoilSummary from "../../components/cards/soil/soilSummary";
 import SoilSummaryCard from "../../components/cards/soil/SoilSummaryCard";
 import forecastData from "../../Data/weatherdata";
 import { useRice } from "../../../context/riceContext";
@@ -21,7 +22,8 @@ export default function MainScreen() {
           {/* Rice Recommendations */}
           <RiceRecommended />
           {/* Weather Forecast */}
-          <WeatherForecast data={forecastData.daily} />
+          <WeatherForecast />
+          {/*Soil*/}
           {/* Soil Summary - conditionally rendered based on planting status */}
           <SoilSummaryCard isPlanting={isPlanting} />
           {/* Main Content */}
