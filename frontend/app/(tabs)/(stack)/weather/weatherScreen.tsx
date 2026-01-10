@@ -19,6 +19,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useSegments } from "expo-router";
+
+import {
+  getWeatherForecast,
+  DailyWeather,
+} from "../../../../lib/api/services/weather/weather_forecast";
 import { API_BASE_URL } from "../../../../lib/apiBaseUrl";
 
 // Theme colors
@@ -39,22 +44,6 @@ const WEATHER_ICONS = {
   cool: require("../../../Images/cloud.png"),
   clear: require("../../../Images/sun.png"),
 };
-
-interface WeatherForecast {
-  datetime: string;
-  weekdate: string;
-  rainfall_mm: string;
-  temperature_c: string;
-  dewpoint_c: string;
-  pressure_pa: string;
-  wind_u10: string;
-  wind_v10: string;
-  wind_speed_ms: string;
-  wind_speed_kmh: string;
-  wind_direction_deg: string;
-  wind_direction: string;
-  weather: string;
-}
 
 const asLower = (value: unknown) =>
   typeof value === "string" ? value.toLowerCase() : "";
@@ -148,7 +137,7 @@ const useBouncingIcon = () => {
 };
 
 export default function WeatherScreen() {
-  const [forecasts, setForecasts] = useState<WeatherForecast[]>([]);
+  const [forecasts, setForecasts] = useState<DailyWeather[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,38 +154,20 @@ export default function WeatherScreen() {
   const fetchWeatherData = useCallback(
     async (opts?: { showLoading?: boolean }) => {
       const showLoading = opts?.showLoading ?? false;
-      const url = `${API_BASE_URL}/api/weather/forecast/latest?latitude=13.657096&longitude=123.224535&days=7`;
-
       try {
         if (showLoading) setLoading(true);
         setError(null);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6500);
-        let response: Response;
-        try {
-          response = await fetch(url, { signal: controller.signal });
-        } finally {
-          clearTimeout(timeoutId);
-        }
-
-        if (!response.ok) {
-          const bodyText = await response.text().catch(() => "");
-          const snippet = bodyText ? `: ${bodyText.slice(0, 220)}` : "";
-          throw new Error(
-            `Weather API error ${response.status} ${response.statusText}${snippet}`
-          );
-        }
-
-        const json = await response.json();
-        if (!Array.isArray(json)) {
-          throw new Error("Unexpected weather response format");
-        }
-        setForecasts(json as WeatherForecast[]);
+        const data = await getWeatherForecast({
+          latitude: 13.657096,
+          longitude: 123.224535,
+          days: 7,
+        });
+        setForecasts(Array.isArray(data) ? data : []);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to fetch weather";
         setError(message);
-        console.error("WeatherScreen fetch error:", { url, err });
+        console.error("WeatherScreen fetch error:", { err });
       } finally {
         setLoading(false);
         setRefreshing(false);

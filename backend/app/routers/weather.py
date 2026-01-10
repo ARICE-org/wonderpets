@@ -7,6 +7,8 @@ from app.utils.weather import process_forecast
 
 router = APIRouter(prefix="/weather", tags=["Weather"])
 
+BASE_URL = "http://host.docker.internal:5002/api/v1" # Docker to Docker
+
 
 @router.get("/forecast/latest")
 async def get_latest_forecast(
@@ -21,7 +23,7 @@ async def get_latest_forecast(
     """
     try:
         response = requests.get(
-            "http://localhost:5002/api/v1/forecast/latest",
+            f"{BASE_URL}/forecast/latest",
             params={
                 "latitude": latitude,
                 "longitude": longitude,
@@ -50,7 +52,7 @@ async def get_forecast_by_date(
     """
     try:
         response = requests.get(
-            "http://localhost:5002/api/v1/forecast/by-date",
+            f"{BASE_URL}/forecast/by-date",
             params={
                 "latitude": latitude,
                 "longitude": longitude,
