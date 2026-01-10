@@ -8,10 +8,8 @@ import {
   Spinner,
   Pressable,
 } from "@gluestack-ui/themed";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   RefreshControl,
-  Animated,
   Easing,
   StyleSheet,
   Image,
@@ -25,6 +23,9 @@ import {
   DailyWeather,
 } from "../../../../lib/api/services/weather/weather_forecast";
 import { API_BASE_URL } from "../../../../lib/apiBaseUrl";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Animated } from "react-native";
+import BaseCard from "app/components/cards/baseCard";
 
 // Theme colors
 const THEME = {
@@ -145,12 +146,6 @@ export default function WeatherScreen() {
   const segments = useSegments() as string[];
   const inStack = segments.includes("(stack)");
 
-  const headerAnim = useFadeIn(0);
-  const mainWeatherAnim = useFadeIn(200);
-  const detailsAnim = useFadeIn(400);
-  const forecastAnim = useFadeIn(600);
-  const bounceAnim = useBouncingIcon();
-
   const fetchWeatherData = useCallback(
     async (opts?: { showLoading?: boolean }) => {
       const showLoading = opts?.showLoading ?? false;
@@ -203,6 +198,8 @@ export default function WeatherScreen() {
     return parseFloat(String(tempStr).replace(" °C", ""));
   };
 
+  // Debug output
+  console.log("WeatherScreen state:", { forecasts, loading, error });
   if (loading) {
     return (
       <Box
@@ -281,231 +278,180 @@ export default function WeatherScreen() {
             </Text>
           </Pressable>
         )}
-
         {/* Location Header */}
-        <Animated.View
-          style={{
-            opacity: headerAnim.fadeAnim,
-            transform: [{ translateY: headerAnim.slideAnim }],
-          }}
-        >
-          <VStack alignItems="center" mt="$2" space="xs">
-            <Text fontSize={28} fontWeight="$bold" color={THEME.text}>
-              Naga City
+        <VStack alignItems="center" mt="$2" space="xs">
+          <Text fontSize={28} fontWeight="$bold" color={THEME.text}>
+            Naga City
+          </Text>
+          {currentWeather && (
+            <Text fontSize="$sm" color={THEME.textLight}>
+              {formatDate(currentWeather.datetime)}
             </Text>
-            {currentWeather && (
-              <Text fontSize="$sm" color={THEME.textLight}>
-                {formatDate(currentWeather.datetime)}
-              </Text>
-            )}
-            {!currentWeather && (
-              <Text fontSize="$sm" color={THEME.textLight}>
-                No forecast data available.
-              </Text>
-            )}
-          </VStack>
-        </Animated.View>
-
+          )}
+          {!currentWeather && (
+            <Text fontSize="$sm" color={THEME.textLight}>
+              No forecast data available.
+            </Text>
+          )}
+        </VStack>
         {/* Empty state (prevents “blank white screen” when API returns []) */}
-        {!currentWeather && (
-          <Box
-            mx="$4"
-            mt="$6"
-            bg={THEME.card}
-            borderRadius={16}
-            p="$4"
-            style={styles.detailsCard}
-          >
-            <VStack space="xs">
-              <Text color={THEME.text} fontSize="$md" fontWeight="$bold">
-                No weather data returned
-              </Text>
-              <Text color={THEME.textLight} fontSize="$sm">
-                Check that the backend is running and reachable from your
-                device.
-              </Text>
-              <Text color={THEME.textLight} fontSize="$xs">
-                API: {API_BASE_URL}
-              </Text>
-              <Pressable
-                onPress={() => {
-                  void fetchWeatherData({ showLoading: true });
-                }}
-                bg={THEME.primary}
-                px="$4"
-                py="$2"
-                rounded="$full"
-                alignSelf="flex-start"
-                mt="$2"
-              >
-                <Text color="$white" fontWeight="$bold">
-                  Retry
-                </Text>
-              </Pressable>
-            </VStack>
-          </Box>
-        )}
 
-        {/* Main Weather Display */}
-        {currentWeather && (
-          <Animated.View
-            style={{
-              opacity: mainWeatherAnim.fadeAnim,
-              transform: [{ translateY: mainWeatherAnim.slideAnim }],
-            }}
-          >
-            <Box style={styles.mainWeatherContainer}>
-              {/* Large cloud in back; text in front */}
-              <Box style={[styles.heroWrap, { position: "relative" }]}>
-                <Animated.View
-                  style={[
-                    styles.heroIconWrap,
-                    styles.iconContainer,
-                    { transform: [{ translateY: bounceAnim }] },
-                  ]}
-                >
-                  <Image
-                    source={getWeather3DIcon(currentWeather.weather)}
-                    resizeMode="contain"
-                    style={[
-                      styles.heroIcon3D,
-                      {
-                        zIndex: 0,
-                        opacity: 0.6,
-                        top: 20,
-                        left: 30,
-                        position: "absolute",
-                      },
-                    ]}
-                  />
-                </Animated.View>
-
-                <Box
-                  style={[
-                    styles.heroTextWrap,
-                    { zIndex: 2, top: 80, right: 90, position: "absolute" },
-                  ]}
-                >
-                  <Text style={styles.heroTemp}>
-                    {Number.isFinite(parseTemp(currentWeather.temperature_c))
-                      ? `${Math.round(
-                          parseTemp(currentWeather.temperature_c)
-                        )}°C`
-                      : "--"}
-                  </Text>
-                  <Text style={styles.heroCondition}>
-                    {currentWeather.weather || "--"}
-                  </Text>
-                </Box>
-              </Box>
+        <Box style={styles.mainWeatherContainer}>
+          {/* Large cloud in back; text in front */}
+          <Box style={[styles.heroWrap, { position: "relative" }]}>
+            <Box
+              style={[
+                styles.heroIconWrap,
+                styles.iconContainer,
+                {
+                  /* transform: [{ translateY: bounceAnim }] */
+                },
+              ]}
+            >
+              <Image
+                source={getWeather3DIcon(currentWeather.weather)}
+                resizeMode="contain"
+                style={[
+                  styles.heroIcon3D,
+                  {
+                    zIndex: 0,
+                    opacity: 0.6,
+                    top: 20,
+                    left: 30,
+                    position: "absolute",
+                  },
+                ]}
+              />
             </Box>
-          </Animated.View>
-        )}
+            <Box
+              style={[
+                styles.heroTextWrap,
+                { zIndex: 2, top: 80, right: 90, position: "absolute" },
+              ]}
+            >
+              <Text style={styles.heroTemp}>
+                {Number.isFinite(parseTemp(currentWeather.temperature_c))
+                  ? `${Math.round(parseTemp(currentWeather.temperature_c))}°C`
+                  : "--"}
+              </Text>
+              <Text style={styles.heroCondition}>
+                {currentWeather.weather || "--"}
+              </Text>
+            </Box>
+          </Box>
+        </Box>
 
-        {/* 7-Day Forecast */}
-        <Animated.View
-          style={{
-            opacity: forecastAnim.fadeAnim,
-            transform: [{ translateY: forecastAnim.slideAnim }],
-          }}
-        >
-          <Box mx="$4" mt="$6">
-            <Text style={styles.sectionTitle}>7-day Forecast</Text>
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <HStack space="sm" px="$1" py="$2">
-                {forecasts.map((forecast, index) => {
-                  const temp = parseTemp(forecast.temperature_c);
-                  const isToday = index === 0;
-                  const dayIcon = getWeather2DIcon(forecast.weather);
-
-                  return (
+        <Box mx="$4" mt="$6">
+          <Text style={styles.sectionTitle}>7-day Forecast</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <HStack space="sm" px="$1" py="$2">
+              {forecasts.map((forecast, index) => {
+                const temp = parseTemp(forecast.temperature_c);
+                const wind = forecast.wind_speed_kmh;
+                const isToday = index === 0;
+                const dayIcon = getWeather2DIcon(forecast.weather);
+                const accent = "#1DB954";
+                const textLight = "#666666";
+                const iconColor = isToday ? accent : "#9AA4B2";
+                return (
+                  <BaseCard
+                    w={isToday ? 100 : 80}
+                    minHeight={128}
+                    mx="$1"
+                    my="$2"
+                    p="$3"
+                    rounded="$2xl"
+                    borderWidth={isToday ? 2 : 0}
+                    borderColor={isToday ? accent : "transparent"}
+                    bg="$white"
+                    alignItems="center"
+                    shadowColor="black"
+                    shadowOffset={{ width: 0, height: 10 }}
+                    shadowOpacity={0.1}
+                    shadowRadius={14}
+                    elevation={8}
+                  >
+                    {/* Day pill */}
                     <Box
-                      key={index}
-                      style={[styles.dayCard, isToday && styles.dayCardActive]}
+                      px="$3"
+                      py="$1"
+                      rounded="$full"
+                      bg={isToday ? accent : "$coolGray100"}
+                      alignItems="center"
                     >
-                      <Box
-                        style={[
-                          styles.dayLabel,
-                          isToday && styles.dayLabelActive,
-                        ]}
-                      >
-                        <Text
-                          color={isToday ? "$white" : THEME.textLight}
-                          fontSize="$xs"
-                          fontWeight="$bold"
-                        >
-                          {isToday
-                            ? "TODAY"
-                            : (forecast.weekdate || "---")
-                                .slice(0, 3)
-                                .toUpperCase()}
-                        </Text>
-                      </Box>
-
                       <Text
-                        color={THEME.primary}
-                        fontSize="$xl"
+                        fontSize="$2xs"
                         fontWeight="$bold"
-                        mt="$3"
+                        color={isToday ? "$white" : textLight}
                       >
-                        {Number.isFinite(temp) ? `${Math.round(temp)}°C` : "--"}
+                        {isToday
+                          ? "TODAY"
+                          : (forecast.weekdate || "---")
+                              .slice(0, 3)
+                              .toUpperCase()}
                       </Text>
+                    </Box>
 
+                    {/* Temperature */}
+                    <Text
+                      mt="$3"
+                      fontSize="$xl"
+                      fontWeight="$bold"
+                      color={accent}
+                    >
+                      {Number.isFinite(temp) ? `${Math.round(temp)}°C` : "--"}
+                    </Text>
+
+                    {/* 2D icon */}
+                    <Box mt="$2">
                       <Ionicons
                         name={dayIcon.name}
                         size={30}
-                        color={dayIcon.color}
-                        style={
-                          isToday ? styles.dayIcon2DActive : styles.dayIcon2D
-                        }
+                        color={iconColor}
                       />
                     </Box>
-                  );
-                })}
-              </HStack>
-            </ScrollView>
-          </Box>
-        </Animated.View>
+
+                    {/* Wind (kept content, styled subtle) */}
+                    <Text mt="$2" fontSize="$2xs" color={textLight}>
+                      {wind}
+                    </Text>
+                  </BaseCard>
+                );
+              })}
+            </HStack>
+          </ScrollView>
+        </Box>
 
         {/* Weather Details */}
         {currentWeather && (
-          <Animated.View
-            style={{
-              opacity: detailsAnim.fadeAnim,
-              transform: [{ translateY: detailsAnim.slideAnim }],
-            }}
-          >
-            <Box mx="$4" mt="$6">
-              <Text style={styles.sectionTitle}>Weather Details</Text>
-
-              <Box style={styles.detailsCard}>
-                <HStack justifyContent="space-between" flexWrap="wrap">
-                  <WeatherDetailItem
-                    iconName="navigate-outline"
-                    label="Wind"
-                    value={currentWeather.wind_speed_kmh}
-                    subvalue={currentWeather.wind_direction}
-                  />
-                  <WeatherDetailItem
-                    iconName="rainy-outline"
-                    label="Rainfall"
-                    value={currentWeather.rainfall_mm}
-                  />
-                  <WeatherDetailItem
-                    iconName="speedometer-outline"
-                    label="Pressure"
-                    value={currentWeather.pressure_pa}
-                  />
-                  <WeatherDetailItem
-                    iconName="water-outline"
-                    label="Dewpoint"
-                    value={currentWeather.dewpoint_c}
-                  />
-                </HStack>
-              </Box>
+          <Box mx="$4" mt="$6">
+            <Text style={styles.sectionTitle}>Weather Details</Text>
+            <Box style={styles.detailsCard}>
+              <HStack justifyContent="space-between" flexWrap="wrap">
+                <WeatherDetailItem
+                  iconName="navigate-outline"
+                  label="Wind"
+                  value={currentWeather.wind_speed_kmh}
+                  subvalue={currentWeather.wind_direction}
+                />
+                <WeatherDetailItem
+                  iconName="rainy-outline"
+                  label="Rainfall"
+                  value={currentWeather.rainfall_mm}
+                />
+                <WeatherDetailItem
+                  iconName="speedometer-outline"
+                  label="Pressure"
+                  value={currentWeather.pressure_pa}
+                />
+                <WeatherDetailItem
+                  iconName="water-outline"
+                  label="Dewpoint"
+                  value={currentWeather.dewpoint_c}
+                />
+              </HStack>
             </Box>
-          </Animated.View>
+          </Box>
         )}
       </ScrollView>
     </SafeAreaView>

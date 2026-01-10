@@ -10,6 +10,25 @@ interface WeatherCardProps {
   isToday?: boolean;
 }
 
+const asLower = (value: unknown) =>
+  typeof value === "string" ? value.toLowerCase() : "";
+
+const getWeather2DIcon = (weather: string) => {
+  switch (asLower(weather)) {
+    case "rainy":
+      return { name: "rainy" as const, color: "#6BB3D9" };
+    case "showers":
+      return { name: "rainy-outline" as const, color: "#6BB3D9" };
+    case "cloudy":
+      return { name: "cloudy" as const, color: "#9AA4B2" };
+    case "cool":
+      return { name: "snow" as const, color: "#9AA4B2" };
+    case "clear":
+    default:
+      return { name: "sunny" as const, color: "#FFB020" };
+  }
+};
+
 export default function WeatherCard({
   day,
   temperature,
@@ -54,17 +73,14 @@ export default function WeatherCard({
           {day.toUpperCase()}
         </Text>
       </Box>
-
       {/* Temperature */}
       <Text mt="$3" fontSize="$xl" fontWeight="$bold" color={accent}>
         {temperature}
       </Text>
-
-      {/* 2D icon */}
+      {/* 2D icon
       <Box mt="$2">
         <Ionicons name="partly-sunny" size={30} color={iconColor} />
-      </Box>
-
+      </Box> */}
       {/* Wind (kept content, styled subtle) */}
       <Text mt="$2" fontSize="$2xs" color={textLight}>
         {wind}

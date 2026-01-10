@@ -8,7 +8,7 @@ export const API_CONFIG = {
    * Base URL for all API requests
    * Uses EXPO_PUBLIC_API_URL environment variable or defaults to localhost
    */
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000',
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:8000",
 
   /**
    * Default request timeout in milliseconds (30 seconds)
@@ -19,8 +19,8 @@ export const API_CONFIG = {
    * Default headers sent with every request
    */
   DEFAULT_HEADERS: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
 } as const;
 
