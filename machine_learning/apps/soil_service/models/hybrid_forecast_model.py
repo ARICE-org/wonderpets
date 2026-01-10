@@ -180,7 +180,7 @@ class HybridSoilForecastModel(BaseMLModel):
     DEFAULT_SEASONAL_BASELINE = {
         'dry': {
             'nitrogen_ppm': {'mean': 35.0, 'std': 8.0},
-            'phosphorus_ppm': {'mean': 18.0, 'std': 5.0},
+            'phosphorus_ppm': {'mean': 20.0, 'std': 5.0},
             'potassium_meq': {'mean': 0.75, 'std': 0.2},
             'pH': {'mean': 6.2, 'std': 0.4},
             'soil_moisture_pct': {'mean': 35.0, 'std': 10.0},
@@ -486,6 +486,12 @@ class HybridSoilForecastModel(BaseMLModel):
             row['soil_health_score'] = self._calculate_health_score(row)
             row['health_category'] = self._get_health_category(row['soil_health_score'])
             
+            # Add individual status fields for frontend mapping
+            row['nitrogenStatus'] = self._get_param_status('nitrogen_ppm', row['nitrogen_ppm'])
+            row['phosphorusStatus'] = self._get_param_status('phosphorus_ppm', row['phosphorus_ppm'])
+            row['potassiumStatus'] = self._get_param_status('potassium_meq', row['potassium_meq'])
+            row['phStatus'] = self._get_param_status('pH', row['pH'])
+            
             forecasts.append(row)
         
         weekly_summary = self._create_weekly_summary(forecasts)
@@ -638,6 +644,38 @@ class HybridSoilForecastModel(BaseMLModel):
                 total_weight += weight
         
         return round(total_score / total_weight if total_weight > 0 else 50, 1)
+
+    def _get_param_status(self, param: str, value: float) -> str:
+        """Calculate status for a specific parameter based on optimal ranges."""
+        optimal_ranges = {
+            'nitrogen_ppm': (40, 80),
+            'phosphorus_ppm': (15, 30),
+            'potassium_meq': (0.5, 1.5),
+            'pH': (5.5, 7.0),
+            'soil_moisture_pct': (25, 40),
+            'organic_matter_pct': (3, 5)
+        }
+        
+        if param not in optimal_ranges:
+            return 'good'
+            
+        opt_low, opt_high = optimal_ranges[param]
+        
+        # pH handles acid/alkaline extremes
+        if param == 'pH':
+            if 5.5 <= value <= 7.0: return 'good'
+            if 5.0 <= value < 5.5 or 7.0 < value <= 8.0: return 'warning'
+            return 'bad'
+            
+        # General nutrients
+        if opt_low <= value <= opt_high:
+            return 'good'
+        
+        # Warning ranges (slightly outside optimal)
+        if (opt_low * 0.7) <= value < opt_low or opt_high < value <= (opt_high * 1.3):
+            return 'warning'
+            
+        return 'bad'
     
     def _get_health_category(self, score: float) -> str:
         """Get health category from score."""
@@ -668,6 +706,11 @@ class HybridSoilForecastModel(BaseMLModel):
         for param in self.TARGET_PARAMETERS:
             if param in df.columns:
                 agg_dict[param] = 'mean'
+        
+        # Aggregate status fields using mode or representative value
+        for status_col in ['nitrogenStatus', 'phosphorusStatus', 'potassiumStatus', 'phStatus']:
+            if status_col in df.columns:
+                agg_dict[status_col] = lambda x: x.iloc[0] # Take first day of week status
         
         weekly = df.groupby('week_number').agg(agg_dict).round(2)
         weekly['health_category'] = weekly['soil_health_score'].apply(self._get_health_category)

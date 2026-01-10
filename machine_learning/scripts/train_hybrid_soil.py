@@ -13,7 +13,8 @@ from pathlib import Path
 from datetime import datetime
 
 # Add app directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "app"))
+# Add machine_learning directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pandas as pd
 import numpy as np
@@ -64,7 +65,7 @@ def load_training_data(data_path: Path) -> pd.DataFrame:
 
 def train_hybrid_model(df: pd.DataFrame, output_path: Path) -> dict:
     """Train the hybrid forecast model."""
-    from models.soil.hybrid_forecast_model import HybridSoilForecastModel, HybridConfig, MLConfig
+    from apps.soil_service.models.hybrid_forecast_model import HybridSoilForecastModel, HybridConfig, MLConfig
     
     # Initialize model with configuration
     hybrid_config = HybridConfig(

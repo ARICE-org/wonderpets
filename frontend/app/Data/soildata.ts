@@ -38,7 +38,7 @@ export const soilMetrics: SoilMetric[] = [
   },
   {
     id: "ph",
-    label: "soil Acidity",
+    label: "Soil Acidity",
     value: "3",
     unit: "pH",
     status: "bad",
@@ -65,32 +65,32 @@ export const nutrients: Nutrient[] = [
 ];
 
 export const pastYieldData = {
-    labels: ["1st Sem", "2nd Sem", "3rd Sem", "4th Sem"],
-    datasets: [
-      {
-        label: "2022 Yield",
-        color: "#2568CC",
-        data: [20, 45, 60, 40],
-      },
-      {
-        label: "2023 Yield",
-        color: "#F434CC",
-        data: [30, 55, 50, 65],
-      },
-      {
-        label: "2024 Yield",
-        color: "#F5A623",
-        data: [40, 60, 55, 70],
-      },
-       {
-        label: "2025 Yield",
-        color: "#C2C332",
-        data: [44, 20, 76, 90],
-      },
-    ],
-  };
+  labels: ["1st Sem", "2nd Sem", "3rd Sem", "4th Sem"],
+  datasets: [
+    {
+      label: "2022 Yield",
+      color: "#2568CC",
+      data: [20, 45, 60, 40],
+    },
+    {
+      label: "2023 Yield",
+      color: "#F434CC",
+      data: [30, 55, 50, 65],
+    },
+    {
+      label: "2024 Yield",
+      color: "#F5A623",
+      data: [40, 60, 55, 70],
+    },
+    {
+      label: "2025 Yield",
+      color: "#C2C332",
+      data: [44, 20, 76, 90],
+    },
+  ],
+};
 
- export const soilDataByYear = {
+export const soilDataByYear = {
   "2023": {
     labels: ["Jan", "Feb", "Mar", "Apr", "May"],
     datasets: [
@@ -118,10 +118,10 @@ export const pastYieldData = {
 };
 
 
- export const fertilizerValues = [
-    { label: "Nitrogen", value: 27, color: "$blue500" },
-    { label: "Phosphorus", value: 30, color: "$green500" },
-    { label: "Potassium", value: 138, color: "$yellow500" },
-  ];
+export const fertilizerValues = [
+  { label: "Nitrogen", value: 27, color: "$blue500" },
+  { label: "Phosphorus", value: 30, color: "$green500" },
+  { label: "Potassium", value: 138, color: "$yellow500" },
+];
 
 export default soilMetrics;

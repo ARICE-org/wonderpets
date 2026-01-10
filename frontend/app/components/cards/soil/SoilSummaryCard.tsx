@@ -1,6 +1,6 @@
 import React from "react";
 import { VStack, HStack, Text, Pressable, Box } from "@gluestack-ui/themed";
-import { useSoilForecast } from "../../../../hooks/useSoilForecast";
+import { useWeeklyForecast } from "../../../../hooks/useSoilForecast";
 import { useSoil } from "../../../../context/soilContext";
 import { transformForecastToMetrics, fallbackSoilMetrics } from "./soildata";
 import MetricRow from "./metricRow";
@@ -63,18 +63,17 @@ export default function SoilSummary({
   isPlanting = true,
 }: SoilSummaryProps) {
   const { setHasSoilData, refreshKey } = useSoil();
-  // Hooks must be called unconditionally; use autoFetch=false to avoid network calls.
-  const { data: forecast, loading, error, refetch } = useSoilForecast(
+
+  // Use the new weekly forecast specific hook
+  const { data: forecast, loading, error, refetch } = useWeeklyForecast(
     farmerId,
     Boolean(isPlanting)
   );
 
-  const hasForecast = Boolean(
-    forecast && Array.isArray(forecast.weeklyForecast) && forecast.weeklyForecast.length > 0
-  );
+  const hasForecast = Boolean(forecast && forecast.week);
 
   React.useEffect(() => {
-    // Keep context in sync with reality so other UI (arrow, etc) behaves.
+    // Keep context in sync with reality
     if (!isPlanting) {
       setHasSoilData(false);
       return;
@@ -85,8 +84,6 @@ export default function SoilSummary({
   }, [isPlanting, loading, hasForecast, setHasSoilData]);
 
   React.useEffect(() => {
-    // When Profile upload succeeds it calls triggerRefresh(); this effect
-    // ensures we actually re-hit GET /soil-forecast/forecast/{farmerId}.
     if (!isPlanting) return;
     if (refreshKey > 0) {
       refetch();
@@ -98,12 +95,10 @@ export default function SoilSummary({
     return null;
   }
 
-  // Metrics rows (use real data if available)
+  // Metrics rows (use real data for the single week returned)
   const soilMetrics = hasForecast
-    ? transformForecastToMetrics(forecast!.weeklyForecast[0])
+    ? transformForecastToMetrics(forecast!)
     : fallbackSoilMetrics;
-  const row1 = soilMetrics.slice(0, 2);
-  const row2 = soilMetrics.slice(2, 4);
 
   return (
     <VStack key={refreshKey}>
@@ -111,14 +106,15 @@ export default function SoilSummary({
         justifyContent="space-between"
         alignItems="center"
         mb="$4"
-        mx="$2"
+        mx="$4"
+        mt="$6"
       >
         <Text fontSize="$xl" fontWeight="$bold" color="$black">
           Soil Summary
         </Text>
         {hasForecast && (
           <Pressable
-            onPress={() => router.push("/(tabs)/(stack)/soil/soilScreeen")}
+            onPress={() => router.push("/(tabs)/(stack)/soil/soilScreen")}
           >
             <Text fontSize="$2xl" fontWeight="$bold" color="$coolGray500">
               →
@@ -127,15 +123,14 @@ export default function SoilSummary({
         )}
       </HStack>
 
-      {/* Always fetch forecast on Home; show loading/metrics/CTA based on result */}
+      {/* Show loading/metrics/CTA based on result */}
       {loading ? (
         <VStack space="md" alignItems="center" justifyContent="center" py="$4">
-          <Text color="$coolGray500">Loading soil forecast...</Text>
+          <Text color="$coolGray500">Loading soil data...</Text>
         </VStack>
       ) : hasForecast ? (
-        <VStack>
-          <MetricRow metrics={row1} />
-          <MetricRow metrics={row2} />
+        <VStack alignItems="center" px="$4">
+          <MetricRow metrics={soilMetrics} />
           <StatusBar />
         </VStack>
       ) : (

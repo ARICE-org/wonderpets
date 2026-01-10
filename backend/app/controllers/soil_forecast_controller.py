@@ -32,6 +32,7 @@ from app.schemas.soil_forecast import (
     ReadingHistoryItem,
     ForecastSummary,
     TrendDirection,
+    WeeklyForecast,
 )
 from app.packages.sensor_aggregator import sensor_aggregator
 from app.packages.ml_client import ml_client, MLServiceClient
@@ -639,5 +640,37 @@ class SoilForecastController:
             "created_at": new_forecast.created_at,
             "is_realignment": False
         }
+
+    async def get_current_week_forecast(
+        self,
+        db: Session,
+        farm_id: UUID
+    ) -> Optional[WeeklyForecast]:
+        """
+        Get forecast for the current week for a farm.
+        """
+        # 1. Get full forecast
+        full_forecast = await self.get_forecast(db=db, farm_id=farm_id)
+        if not full_forecast:
+            return None
+            
+        # 2. Determine current week based on planting date
+        planting_date = full_forecast.forecast_summary.planting_date
+        current_week = self.service.calculate_current_week(planting_date)
+        
+        # 3. Find the forecast for the current week
+        for week_data in full_forecast.weekly_forecast:
+            if week_data.week == current_week:
+                return week_data
+                
+        # Fallback: if today is before planting date, return week 1
+        if current_week < 1 and full_forecast.weekly_forecast:
+            return full_forecast.weekly_forecast[0]
+            
+        # Fallback: if today is after forecast period, return last week
+        if current_week > len(full_forecast.weekly_forecast) and full_forecast.weekly_forecast:
+            return full_forecast.weekly_forecast[-1]
+            
+        return None
 
 soil_forecast_controller = SoilForecastController()

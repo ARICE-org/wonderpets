@@ -58,11 +58,11 @@ const COLUMN_MAPPINGS: Record<string, string[]> = {
 
 function findColumnValue(row: Record<string, string>, targetField: string): string | undefined {
   const possibleNames = COLUMN_MAPPINGS[targetField] || [targetField];
-  
+
   for (const name of possibleNames) {
     // Check exact match first
     if (row[name] !== undefined) return row[name];
-    
+
     // Check case-insensitive
     const lowerName = name.toLowerCase();
     for (const key of Object.keys(row)) {
@@ -120,7 +120,7 @@ export function useCsvUpload(options: UseCsvUploadOptions) {
       }
 
       const file = result.assets[0];
-      
+
       // Fetch the file content using the URI
       const response = await fetch(file.uri);
       const csvText = await response.text();
@@ -244,7 +244,11 @@ export function useCsvUpload(options: UseCsvUploadOptions) {
           })),
         };
 
-        const response = await soilDataService.bulkUploadSoilData(request);
+        const response = await soilDataService.bulkUploadSoilData(request, {
+          toastUploadingMessage: 'Uploading CSV...',
+          toastSuccessMessage: 'Soil data uploaded successfully',
+          // toastErrorMessage: ... (client handles default)
+        });
 
         const result: CsvUploadResult = {
           success: true,
