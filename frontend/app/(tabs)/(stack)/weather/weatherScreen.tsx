@@ -15,12 +15,11 @@ import {
   Easing,
   StyleSheet,
   Image,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useSegments } from "expo-router";
-
-// Backend API configuration
-const API_BASE_URL = "http://10.0.2.2:8000"; // Use 10.0.2.2 for Android emulator, localhost for iOS
+import { API_BASE_URL } from "../../../../lib/apiBaseUrl";
 
 // Theme colors
 const THEME = {
@@ -57,9 +56,12 @@ interface WeatherForecast {
   weather: string;
 }
 
+const asLower = (value: unknown) =>
+  typeof value === "string" ? value.toLowerCase() : "";
+
 // Get 3D weather icon
 const getWeather3DIcon = (weather: string) => {
-  switch (weather.toLowerCase()) {
+  switch (asLower(weather)) {
     case "rainy":
       return WEATHER_ICONS.rainy;
     case "showers":
@@ -75,7 +77,7 @@ const getWeather3DIcon = (weather: string) => {
 };
 
 const getWeather2DIcon = (weather: string) => {
-  switch (weather.toLowerCase()) {
+  switch (asLower(weather)) {
     case "rainy":
       return { name: "rainy" as const, color: "#6BB3D9" };
     case "showers":
@@ -112,7 +114,7 @@ const useFadeIn = (delay: number = 0) => {
         easing: Easing.out(Easing.cubic),
       }),
     ]).start();
-  }, []);
+  }, [delay, fadeAnim, slideAnim]);
 
   return { fadeAnim, slideAnim };
 };
@@ -140,75 +142,10 @@ const useBouncingIcon = () => {
     );
     bounce.start();
     return () => bounce.stop();
-  }, []);
+  }, [bounceAnim]);
 
   return bounceAnim;
 };
-
-// Rain drop animation component
-function RainDrops({ count = 12 }: { count?: number }) {
-  const drops = useRef(
-    Array.from({ length: count }, () => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 2000,
-      duration: 1500 + Math.random() * 1000,
-      anim: new Animated.Value(0),
-    }))
-  ).current;
-
-  useEffect(() => {
-    drops.forEach((drop) => {
-      const animate = () => {
-        drop.anim.setValue(0);
-        Animated.timing(drop.anim, {
-          toValue: 1,
-          duration: drop.duration,
-          delay: drop.delay,
-          useNativeDriver: true,
-          easing: Easing.linear,
-        }).start(() => animate());
-      };
-      animate();
-    });
-  }, []);
-
-  return (
-    <Box
-      position="absolute"
-      top={0}
-      left={0}
-      right={0}
-      bottom={0}
-      overflow="hidden"
-    >
-      {drops.map((drop, i) => (
-        <Animated.View
-          key={i}
-          style={[
-            styles.rainDrop,
-            {
-              left: `${drop.left}%`,
-              opacity: drop.anim.interpolate({
-                inputRange: [0, 0.1, 0.9, 1],
-                outputRange: [0, 0.7, 0.7, 0],
-              }),
-              transform: [
-                {
-                  translateY: drop.anim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 150],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <Ionicons name="water" size={20} color="#6BB3D9" />
-        </Animated.View>
-      ))}
-    </Box>
-  );
-}
 
 export default function WeatherScreen() {
   const [forecasts, setForecasts] = useState<WeatherForecast[]>([]);
@@ -225,30 +162,51 @@ export default function WeatherScreen() {
   const forecastAnim = useFadeIn(600);
   const bounceAnim = useBouncingIcon();
 
-  const fetchWeatherData = useCallback(async () => {
-    try {
-      setError(null);
-      const response = await fetch(
-        `${API_BASE_URL}/api/weather/forecast/latest?latitude=13.657096&longitude=123.224535&days=7`
-      );
+  const fetchWeatherData = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading ?? false;
+      const url = `${API_BASE_URL}/api/weather/forecast/latest?latitude=13.657096&longitude=123.224535&days=7`;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      try {
+        if (showLoading) setLoading(true);
+        setError(null);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6500);
+        let response: Response;
+        try {
+          response = await fetch(url, { signal: controller.signal });
+        } finally {
+          clearTimeout(timeoutId);
+        }
+
+        if (!response.ok) {
+          const bodyText = await response.text().catch(() => "");
+          const snippet = bodyText ? `: ${bodyText.slice(0, 220)}` : "";
+          throw new Error(
+            `Weather API error ${response.status} ${response.statusText}${snippet}`
+          );
+        }
+
+        const json = await response.json();
+        if (!Array.isArray(json)) {
+          throw new Error("Unexpected weather response format");
+        }
+        setForecasts(json as WeatherForecast[]);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to fetch weather";
+        setError(message);
+        console.error("WeatherScreen fetch error:", { url, err });
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-
-      const data: WeatherForecast[] = await response.json();
-      setForecasts(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch weather");
-      console.error("Weather fetch error:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
-    fetchWeatherData();
+    fetchWeatherData({ showLoading: true });
   }, [fetchWeatherData]);
 
   const onRefresh = useCallback(() => {
@@ -257,11 +215,10 @@ export default function WeatherScreen() {
   }, [fetchWeatherData]);
 
   const currentWeather = forecasts[0];
-  const isRainy =
-    currentWeather?.weather.toLowerCase().includes("rain") ||
-    currentWeather?.weather.toLowerCase().includes("shower");
+  // const isRainy = currentWeatherText.includes("rain") || currentWeatherText.includes("shower"); // unused
 
   const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
       month: "long",
@@ -271,7 +228,8 @@ export default function WeatherScreen() {
   };
 
   const parseTemp = (tempStr: string) => {
-    return parseFloat(tempStr.replace(" °C", ""));
+    if (!tempStr) return NaN;
+    return parseFloat(String(tempStr).replace(" °C", ""));
   };
 
   if (loading) {
@@ -286,6 +244,9 @@ export default function WeatherScreen() {
           <Spinner size="large" color={THEME.primary} />
           <Text color={THEME.text} fontSize="$lg">
             Loading Weather...
+          </Text>
+          <Text color={THEME.textLight} fontSize="$xs">
+            API: {API_BASE_URL}
           </Text>
         </VStack>
       </Box>
@@ -306,7 +267,9 @@ export default function WeatherScreen() {
             {error}
           </Text>
           <Pressable
-            onPress={fetchWeatherData}
+            onPress={() => {
+              void fetchWeatherData({ showLoading: true });
+            }}
             bg={THEME.primary}
             px="$6"
             py="$3"
@@ -364,8 +327,53 @@ export default function WeatherScreen() {
                 {formatDate(currentWeather.datetime)}
               </Text>
             )}
+            {!currentWeather && (
+              <Text fontSize="$sm" color={THEME.textLight}>
+                No forecast data available.
+              </Text>
+            )}
           </VStack>
         </Animated.View>
+
+        {/* Empty state (prevents “blank white screen” when API returns []) */}
+        {!currentWeather && (
+          <Box
+            mx="$4"
+            mt="$6"
+            bg={THEME.card}
+            borderRadius={16}
+            p="$4"
+            style={styles.detailsCard}
+          >
+            <VStack space="xs">
+              <Text color={THEME.text} fontSize="$md" fontWeight="$bold">
+                No weather data returned
+              </Text>
+              <Text color={THEME.textLight} fontSize="$sm">
+                Check that the backend is running and reachable from your
+                device.
+              </Text>
+              <Text color={THEME.textLight} fontSize="$xs">
+                API: {API_BASE_URL}
+              </Text>
+              <Pressable
+                onPress={() => {
+                  void fetchWeatherData({ showLoading: true });
+                }}
+                bg={THEME.primary}
+                px="$4"
+                py="$2"
+                rounded="$full"
+                alignSelf="flex-start"
+                mt="$2"
+              >
+                <Text color="$white" fontWeight="$bold">
+                  Retry
+                </Text>
+              </Pressable>
+            </VStack>
+          </Box>
+        )}
 
         {/* Main Weather Display */}
         {currentWeather && (
@@ -387,6 +395,7 @@ export default function WeatherScreen() {
                 >
                   <Image
                     source={getWeather3DIcon(currentWeather.weather)}
+                    resizeMode="contain"
                     style={[
                       styles.heroIcon3D,
                       {
@@ -407,10 +416,14 @@ export default function WeatherScreen() {
                   ]}
                 >
                   <Text style={styles.heroTemp}>
-                    {Math.round(parseTemp(currentWeather.temperature_c))}°C
+                    {Number.isFinite(parseTemp(currentWeather.temperature_c))
+                      ? `${Math.round(
+                          parseTemp(currentWeather.temperature_c)
+                        )}°C`
+                      : "--"}
                   </Text>
                   <Text style={styles.heroCondition}>
-                    {currentWeather.weather}
+                    {currentWeather.weather || "--"}
                   </Text>
                 </Box>
               </Box>
@@ -453,7 +466,9 @@ export default function WeatherScreen() {
                         >
                           {isToday
                             ? "TODAY"
-                            : forecast.weekdate.slice(0, 3).toUpperCase()}
+                            : (forecast.weekdate || "---")
+                                .slice(0, 3)
+                                .toUpperCase()}
                         </Text>
                       </Box>
 
@@ -463,7 +478,7 @@ export default function WeatherScreen() {
                         fontWeight="$bold"
                         mt="$3"
                       >
-                        {Math.round(temp)}°C
+                        {Number.isFinite(temp) ? `${Math.round(temp)}°C` : "--"}
                       </Text>
 
                       <Ionicons
@@ -584,7 +599,6 @@ const styles = StyleSheet.create({
   heroIcon3D: {
     width: 230,
     height: 230,
-    resizeMode: "contain",
   },
   heroTextWrap: {
     position: "absolute",
@@ -605,11 +619,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   iconContainer: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    elevation: 12,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 10px 18px rgba(0, 0, 0, 0.18)" }
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.18,
+          shadowRadius: 18,
+          elevation: 12,
+        }),
   },
   rainDrop: {
     position: "absolute",
@@ -625,11 +643,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)" }
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 3,
+        }),
   },
   detailItem: {
     width: "48%",
@@ -652,11 +674,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
     minWidth: 70,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 8,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 10px 14px rgba(0, 0, 0, 0.10)" }
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.1,
+          shadowRadius: 14,
+          elevation: 8,
+        }),
     marginVertical: 6,
     marginHorizontal: 2,
   },

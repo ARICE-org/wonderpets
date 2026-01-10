@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, VStack } from "@gluestack-ui/themed";
+import { Box, Text } from "@gluestack-ui/themed";
 import { Ionicons } from "@expo/vector-icons";
 import BaseCard from "../baseCard";
 

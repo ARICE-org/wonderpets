@@ -15,9 +15,7 @@ import {
 } from "@gluestack-ui/themed";
 import WeatherCard from "./weathercard";
 import BaseCard from "../baseCard";
-
-// Backend API configuration
-const API_BASE_URL = "http://10.0.2.2:8000"; // Use 10.0.2.2 for Android emulator, localhost for iOS
+import { API_BASE_URL } from "../../../../lib/apiBaseUrl";
 
 interface WeatherApiForecast {
   weekdate: string;
@@ -175,6 +173,9 @@ export default function WeatherForecast({ data }: WeatherForecastProps) {
             <Spinner size="small" color="$black" />
             <Text fontSize="$xs" color="$coolGray600">
               Waiting for server…
+            </Text>
+            <Text fontSize="$xs" color="$coolGray500">
+              API: {API_BASE_URL}
             </Text>
           </HStack>
         </VStack>
