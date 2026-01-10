@@ -1,5 +1,10 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+from functools import lru_cache
+from pathlib import Path
+
+
+ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
 
 class Settings(BaseSettings):
     POSTGRES_USER: str
@@ -8,6 +13,9 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: int
     CORS_ORIGINS: str
+    
+    # Server Configuration
+    PORT: int = 8000  # Backend server port for internal API calls
     
     # ML Service Configuration (Legacy - single URL for backward compatibility)
     ML_SERVICE_URL: str = "http://localhost:8001"  
@@ -29,10 +37,17 @@ class Settings(BaseSettings):
     RATE_LIMIT_STRICT_WINDOW: int = 60       
 
     class Config:
-        env_file = "../.env"
+        env_file = str(ENV_FILE)
         extra = "ignore"  # ignore extra env vars
 
-settings = Settings()
+
+@lru_cache()
+def get_settings() -> Settings:
+    """Get cached settings instance."""
+    return Settings()
+
+
+settings = get_settings()
 
 DATABASE_URL = (
     f"postgresql+psycopg2://{settings.POSTGRES_USER}:"

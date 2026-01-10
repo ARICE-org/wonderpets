@@ -3,6 +3,35 @@ from typing import Dict, Optional, Any, List
 from datetime import date, datetime
 from pydantic import BaseModel
 from app.config.settings import settings
+import logging
+
+from urllib.parse import urlparse
+
+logger = logging.getLogger("uvicorn")
+
+
+def _normalize_base_url(raw_url: str) -> str:
+    url = (raw_url or "").strip()
+    if not url:
+        return url
+
+    # Common typo: "http:/host" or "https:/host" (missing one slash)
+    if url.startswith("http:/") and not url.startswith("http://"):
+        url = "http://" + url[len("http:/"):]
+    elif url.startswith("https:/") and not url.startswith("https://"):
+        url = "https://" + url[len("https:/"):]
+
+    # If scheme is missing, default to http://
+    if "://" not in url:
+        url = "http://" + url
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"Unsupported ML base URL scheme in: {raw_url}")
+    if not parsed.netloc:
+        raise ValueError(f"Invalid ML base URL (missing host): {raw_url}")
+
+    return url.rstrip("/")
 
 
 # ============================================================================
@@ -59,8 +88,9 @@ class BaseMLClient:
     """Base class for ML service clients with common functionality."""
     
     def __init__(self, base_url: str, timeout: float = 30.0):
-        self.base_url = base_url
+        self.base_url = _normalize_base_url(base_url)
         self.timeout = timeout
+        logger.info(f"[MLClient] Using base_url={self.base_url}")
     
     async def health_check(self) -> bool:
         """Check if ML service is available and healthy."""
@@ -103,18 +133,23 @@ class SoilMLClient(BaseMLClient):
         Returns:
             MLForecastResponse with forecast data
         """
+        url = f"{self.base_url}/api/v1/soil/hybrid-forecast"
+        payload = {
+            "current_soil_data": self._format_current_data(current_data),
+            "planting_date": planting_date.isoformat() if isinstance(planting_date, date) else planting_date,
+            "forecast_horizon_days": forecast_horizon_days,
+            "forecast_interval_days": forecast_interval_days,
+        }
+        logger.info(f"[SoilML] POST {url}")
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                f"{self.base_url}/api/v1/soil/hybrid-forecast",
-                json={
-                    "current_soil_data": self._format_current_data(current_data),
-                    "planting_date": planting_date.isoformat() if isinstance(planting_date, date) else planting_date,
-                    "forecast_horizon_days": forecast_horizon_days,
-                    "forecast_interval_days": forecast_interval_days
-                }
-            )
-            response.raise_for_status()
-            return MLForecastResponse(**response.json())
+            try:
+                response = await client.post(url, json=payload)
+                logger.info(f"[SoilML] Response {response.status_code} from {url}")
+                response.raise_for_status()
+                return MLForecastResponse(**response.json())
+            except Exception as exc:
+                logger.exception(f"[SoilML] Failed calling {url}: {exc}")
+                raise
     
     async def realign_forecast(
         self,
@@ -133,17 +168,22 @@ class SoilMLClient(BaseMLClient):
         Returns:
             MLForecastResponse with realigned forecast
         """
+        url = f"{self.base_url}/api/v1/soil/realign-forecast"
+        payload = {
+            "current_data": current_data,
+            "existing_forecast": existing_forecast,
+            "current_week": current_week,
+        }
+        logger.info(f"[SoilML] POST {url}")
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                f"{self.base_url}/api/v1/soil/realign-forecast",
-                json={
-                    "current_data": current_data,
-                    "existing_forecast": existing_forecast,
-                    "current_week": current_week
-                }
-            )
-            response.raise_for_status()
-            return MLForecastResponse(**response.json())
+            try:
+                response = await client.post(url, json=payload)
+                logger.info(f"[SoilML] Response {response.status_code} from {url}")
+                response.raise_for_status()
+                return MLForecastResponse(**response.json())
+            except Exception as exc:
+                logger.exception(f"[SoilML] Failed calling {url}: {exc}")
+                raise
     
     async def calculate_health_score(
         self,
