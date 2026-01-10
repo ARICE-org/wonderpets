@@ -15,9 +15,7 @@ import {
 } from "@gluestack-ui/themed";
 import WeatherCard from "./weathercard";
 import BaseCard from "../baseCard";
-
-// Backend API configuration
-const API_BASE_URL = "http://10.0.2.2:8000"; // Use 10.0.2.2 for Android emulator, localhost for iOS
+import { getWeatherForecast } from "../../../../lib/api/services/weather/weather_forecast";
 
 interface WeatherApiForecast {
   weekdate: string;
@@ -88,33 +86,23 @@ export default function WeatherForecast({ data }: WeatherForecastProps) {
       setLoading(true);
       setServerNotReady(false);
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6500);
-      const response = await fetch(
-        `${API_BASE_URL}/api/weather/forecast/latest?latitude=13.657096&longitude=123.224535&days=7`,
-        { signal: controller.signal }
-      );
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const forecast: WeatherApiForecast[] = await response.json();
-      const mapped: ForecastDay[] = forecast.map((f, index) => {
+      const forecast = await getWeatherForecast({
+        latitude: 13.657096,
+        longitude: 123.224535,
+        days: 7,
+      });
+      const mapped: ForecastDay[] = forecast.map((f: any, index: number) => {
         const dayLabel =
           index === 0 ? "TODAY" : f.weekdate.slice(0, 3).toUpperCase();
         const tempValue = Math.round(
-          parseFloat(f.temperature_c.replace(" °C", ""))
+          parseFloat(String(f.temperature_c).replace(" °C", ""))
         );
-
         return {
           day: dayLabel,
           temp: `${tempValue}°C`,
           wind: f.wind_speed_kmh,
         };
       });
-
       setApiData(mapped);
       retryDelayRef.current = 2000;
     } catch {

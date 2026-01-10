@@ -8,19 +8,24 @@ import {
   Spinner,
   Pressable,
 } from "@gluestack-ui/themed";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   RefreshControl,
-  Animated,
   Easing,
   StyleSheet,
   Image,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useSegments } from "expo-router";
 
-// Backend API configuration
-const API_BASE_URL = "http://10.0.2.2:8000"; // Use 10.0.2.2 for Android emulator, localhost for iOS
+import {
+  getWeatherForecast,
+  DailyWeather,
+} from "../../../../lib/api/services/weather/weather_forecast";
+import { API_BASE_URL } from "../../../../lib/apiBaseUrl";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Animated } from "react-native";
+import BaseCard from "app/components/cards/baseCard";
 
 // Theme colors
 const THEME = {
@@ -41,25 +46,12 @@ const WEATHER_ICONS = {
   clear: require("../../../Images/sun.png"),
 };
 
-interface WeatherForecast {
-  datetime: string;
-  weekdate: string;
-  rainfall_mm: string;
-  temperature_c: string;
-  dewpoint_c: string;
-  pressure_pa: string;
-  wind_u10: string;
-  wind_v10: string;
-  wind_speed_ms: string;
-  wind_speed_kmh: string;
-  wind_direction_deg: string;
-  wind_direction: string;
-  weather: string;
-}
+const asLower = (value: unknown) =>
+  typeof value === "string" ? value.toLowerCase() : "";
 
 // Get 3D weather icon
 const getWeather3DIcon = (weather: string) => {
-  switch (weather.toLowerCase()) {
+  switch (asLower(weather)) {
     case "rainy":
       return WEATHER_ICONS.rainy;
     case "showers":
@@ -75,7 +67,7 @@ const getWeather3DIcon = (weather: string) => {
 };
 
 const getWeather2DIcon = (weather: string) => {
-  switch (weather.toLowerCase()) {
+  switch (asLower(weather)) {
     case "rainy":
       return { name: "rainy" as const, color: "#6BB3D9" };
     case "showers":
@@ -112,7 +104,7 @@ const useFadeIn = (delay: number = 0) => {
         easing: Easing.out(Easing.cubic),
       }),
     ]).start();
-  }, []);
+  }, [delay, fadeAnim, slideAnim]);
 
   return { fadeAnim, slideAnim };
 };
@@ -140,78 +132,13 @@ const useBouncingIcon = () => {
     );
     bounce.start();
     return () => bounce.stop();
-  }, []);
+  }, [bounceAnim]);
 
   return bounceAnim;
 };
 
-// Rain drop animation component
-function RainDrops({ count = 12 }: { count?: number }) {
-  const drops = useRef(
-    Array.from({ length: count }, () => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 2000,
-      duration: 1500 + Math.random() * 1000,
-      anim: new Animated.Value(0),
-    }))
-  ).current;
-
-  useEffect(() => {
-    drops.forEach((drop) => {
-      const animate = () => {
-        drop.anim.setValue(0);
-        Animated.timing(drop.anim, {
-          toValue: 1,
-          duration: drop.duration,
-          delay: drop.delay,
-          useNativeDriver: true,
-          easing: Easing.linear,
-        }).start(() => animate());
-      };
-      animate();
-    });
-  }, []);
-
-  return (
-    <Box
-      position="absolute"
-      top={0}
-      left={0}
-      right={0}
-      bottom={0}
-      overflow="hidden"
-    >
-      {drops.map((drop, i) => (
-        <Animated.View
-          key={i}
-          style={[
-            styles.rainDrop,
-            {
-              left: `${drop.left}%`,
-              opacity: drop.anim.interpolate({
-                inputRange: [0, 0.1, 0.9, 1],
-                outputRange: [0, 0.7, 0.7, 0],
-              }),
-              transform: [
-                {
-                  translateY: drop.anim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 150],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <Ionicons name="water" size={20} color="#6BB3D9" />
-        </Animated.View>
-      ))}
-    </Box>
-  );
-}
-
 export default function WeatherScreen() {
-  const [forecasts, setForecasts] = useState<WeatherForecast[]>([]);
+  const [forecasts, setForecasts] = useState<DailyWeather[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -219,36 +146,33 @@ export default function WeatherScreen() {
   const segments = useSegments() as string[];
   const inStack = segments.includes("(stack)");
 
-  const headerAnim = useFadeIn(0);
-  const mainWeatherAnim = useFadeIn(200);
-  const detailsAnim = useFadeIn(400);
-  const forecastAnim = useFadeIn(600);
-  const bounceAnim = useBouncingIcon();
-
-  const fetchWeatherData = useCallback(async () => {
-    try {
-      setError(null);
-      const response = await fetch(
-        `${API_BASE_URL}/api/weather/forecast/latest?latitude=13.657096&longitude=123.224535&days=7`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+  const fetchWeatherData = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading ?? false;
+      try {
+        if (showLoading) setLoading(true);
+        setError(null);
+        const data = await getWeatherForecast({
+          latitude: 13.657096,
+          longitude: 123.224535,
+          days: 7,
+        });
+        setForecasts(Array.isArray(data) ? data : []);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to fetch weather";
+        setError(message);
+        console.error("WeatherScreen fetch error:", { err });
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-
-      const data: WeatherForecast[] = await response.json();
-      setForecasts(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch weather");
-      console.error("Weather fetch error:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
-    fetchWeatherData();
+    fetchWeatherData({ showLoading: true });
   }, [fetchWeatherData]);
 
   const onRefresh = useCallback(() => {
@@ -257,11 +181,10 @@ export default function WeatherScreen() {
   }, [fetchWeatherData]);
 
   const currentWeather = forecasts[0];
-  const isRainy =
-    currentWeather?.weather.toLowerCase().includes("rain") ||
-    currentWeather?.weather.toLowerCase().includes("shower");
+  // const isRainy = currentWeatherText.includes("rain") || currentWeatherText.includes("shower"); // unused
 
   const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
       month: "long",
@@ -271,9 +194,12 @@ export default function WeatherScreen() {
   };
 
   const parseTemp = (tempStr: string) => {
-    return parseFloat(tempStr.replace(" °C", ""));
+    if (!tempStr) return NaN;
+    return parseFloat(String(tempStr).replace(" °C", ""));
   };
 
+  // Debug output
+  console.log("WeatherScreen state:", { forecasts, loading, error });
   if (loading) {
     return (
       <Box
@@ -286,6 +212,9 @@ export default function WeatherScreen() {
           <Spinner size="large" color={THEME.primary} />
           <Text color={THEME.text} fontSize="$lg">
             Loading Weather...
+          </Text>
+          <Text color={THEME.textLight} fontSize="$xs">
+            API: {API_BASE_URL}
           </Text>
         </VStack>
       </Box>
@@ -306,7 +235,9 @@ export default function WeatherScreen() {
             {error}
           </Text>
           <Pressable
-            onPress={fetchWeatherData}
+            onPress={() => {
+              void fetchWeatherData({ showLoading: true });
+            }}
             bg={THEME.primary}
             px="$6"
             py="$3"
@@ -347,179 +278,180 @@ export default function WeatherScreen() {
             </Text>
           </Pressable>
         )}
-
         {/* Location Header */}
-        <Animated.View
-          style={{
-            opacity: headerAnim.fadeAnim,
-            transform: [{ translateY: headerAnim.slideAnim }],
-          }}
-        >
-          <VStack alignItems="center" mt="$2" space="xs">
-            <Text fontSize={28} fontWeight="$bold" color={THEME.text}>
-              Naga City
+        <VStack alignItems="center" mt="$2" space="xs">
+          <Text fontSize={28} fontWeight="$bold" color={THEME.text}>
+            Naga City
+          </Text>
+          {currentWeather && (
+            <Text fontSize="$sm" color={THEME.textLight}>
+              {formatDate(currentWeather.datetime)}
             </Text>
-            {currentWeather && (
-              <Text fontSize="$sm" color={THEME.textLight}>
-                {formatDate(currentWeather.datetime)}
-              </Text>
-            )}
-          </VStack>
-        </Animated.View>
+          )}
+          {!currentWeather && (
+            <Text fontSize="$sm" color={THEME.textLight}>
+              No forecast data available.
+            </Text>
+          )}
+        </VStack>
+        {/* Empty state (prevents “blank white screen” when API returns []) */}
 
-        {/* Main Weather Display */}
-        {currentWeather && (
-          <Animated.View
-            style={{
-              opacity: mainWeatherAnim.fadeAnim,
-              transform: [{ translateY: mainWeatherAnim.slideAnim }],
-            }}
-          >
-            <Box style={styles.mainWeatherContainer}>
-              {/* Large cloud in back; text in front */}
-              <Box style={[styles.heroWrap, { position: "relative" }]}>
-                <Animated.View
-                  style={[
-                    styles.heroIconWrap,
-                    styles.iconContainer,
-                    { transform: [{ translateY: bounceAnim }] },
-                  ]}
-                >
-                  <Image
-                    source={getWeather3DIcon(currentWeather.weather)}
-                    style={[
-                      styles.heroIcon3D,
-                      {
-                        zIndex: 0,
-                        opacity: 0.6,
-                        top: 20,
-                        left: 30,
-                        position: "absolute",
-                      },
-                    ]}
-                  />
-                </Animated.View>
-
-                <Box
-                  style={[
-                    styles.heroTextWrap,
-                    { zIndex: 2, top: 80, right: 90, position: "absolute" },
-                  ]}
-                >
-                  <Text style={styles.heroTemp}>
-                    {Math.round(parseTemp(currentWeather.temperature_c))}°C
-                  </Text>
-                  <Text style={styles.heroCondition}>
-                    {currentWeather.weather}
-                  </Text>
-                </Box>
-              </Box>
+        <Box style={styles.mainWeatherContainer}>
+          {/* Large cloud in back; text in front */}
+          <Box style={[styles.heroWrap, { position: "relative" }]}>
+            <Box
+              style={[
+                styles.heroIconWrap,
+                styles.iconContainer,
+                {
+                  /* transform: [{ translateY: bounceAnim }] */
+                },
+              ]}
+            >
+              <Image
+                source={getWeather3DIcon(currentWeather.weather)}
+                resizeMode="contain"
+                style={[
+                  styles.heroIcon3D,
+                  {
+                    zIndex: 0,
+                    opacity: 0.6,
+                    top: 20,
+                    left: 30,
+                    position: "absolute",
+                  },
+                ]}
+              />
             </Box>
-          </Animated.View>
-        )}
+            <Box
+              style={[
+                styles.heroTextWrap,
+                { zIndex: 2, top: 80, right: 90, position: "absolute" },
+              ]}
+            >
+              <Text style={styles.heroTemp}>
+                {Number.isFinite(parseTemp(currentWeather.temperature_c))
+                  ? `${Math.round(parseTemp(currentWeather.temperature_c))}°C`
+                  : "--"}
+              </Text>
+              <Text style={styles.heroCondition}>
+                {currentWeather.weather || "--"}
+              </Text>
+            </Box>
+          </Box>
+        </Box>
 
-        {/* 7-Day Forecast */}
-        <Animated.View
-          style={{
-            opacity: forecastAnim.fadeAnim,
-            transform: [{ translateY: forecastAnim.slideAnim }],
-          }}
-        >
-          <Box mx="$4" mt="$6">
-            <Text style={styles.sectionTitle}>7-day Forecast</Text>
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <HStack space="sm" px="$1" py="$2">
-                {forecasts.map((forecast, index) => {
-                  const temp = parseTemp(forecast.temperature_c);
-                  const isToday = index === 0;
-                  const dayIcon = getWeather2DIcon(forecast.weather);
-
-                  return (
+        <Box mx="$4" mt="$6">
+          <Text style={styles.sectionTitle}>7-day Forecast</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <HStack space="sm" px="$1" py="$2">
+              {forecasts.map((forecast, index) => {
+                const temp = parseTemp(forecast.temperature_c);
+                const wind = forecast.wind_speed_kmh;
+                const isToday = index === 0;
+                const dayIcon = getWeather2DIcon(forecast.weather);
+                const accent = "#1DB954";
+                const textLight = "#666666";
+                const iconColor = isToday ? accent : "#9AA4B2";
+                return (
+                  <BaseCard
+                    w={isToday ? 100 : 80}
+                    minHeight={128}
+                    mx="$1"
+                    my="$2"
+                    p="$3"
+                    rounded="$2xl"
+                    borderWidth={isToday ? 2 : 0}
+                    borderColor={isToday ? accent : "transparent"}
+                    bg="$white"
+                    alignItems="center"
+                    shadowColor="black"
+                    shadowOffset={{ width: 0, height: 10 }}
+                    shadowOpacity={0.1}
+                    shadowRadius={14}
+                    elevation={8}
+                  >
+                    {/* Day pill */}
                     <Box
-                      key={index}
-                      style={[styles.dayCard, isToday && styles.dayCardActive]}
+                      px="$3"
+                      py="$1"
+                      rounded="$full"
+                      bg={isToday ? accent : "$coolGray100"}
+                      alignItems="center"
                     >
-                      <Box
-                        style={[
-                          styles.dayLabel,
-                          isToday && styles.dayLabelActive,
-                        ]}
-                      >
-                        <Text
-                          color={isToday ? "$white" : THEME.textLight}
-                          fontSize="$xs"
-                          fontWeight="$bold"
-                        >
-                          {isToday
-                            ? "TODAY"
-                            : forecast.weekdate.slice(0, 3).toUpperCase()}
-                        </Text>
-                      </Box>
-
                       <Text
-                        color={THEME.primary}
-                        fontSize="$xl"
+                        fontSize="$2xs"
                         fontWeight="$bold"
-                        mt="$3"
+                        color={isToday ? "$white" : textLight}
                       >
-                        {Math.round(temp)}°C
+                        {isToday
+                          ? "TODAY"
+                          : (forecast.weekdate || "---")
+                              .slice(0, 3)
+                              .toUpperCase()}
                       </Text>
+                    </Box>
 
+                    {/* Temperature */}
+                    <Text
+                      mt="$3"
+                      fontSize="$xl"
+                      fontWeight="$bold"
+                      color={accent}
+                    >
+                      {Number.isFinite(temp) ? `${Math.round(temp)}°C` : "--"}
+                    </Text>
+
+                    {/* 2D icon */}
+                    <Box mt="$2">
                       <Ionicons
                         name={dayIcon.name}
                         size={30}
-                        color={dayIcon.color}
-                        style={
-                          isToday ? styles.dayIcon2DActive : styles.dayIcon2D
-                        }
+                        color={iconColor}
                       />
                     </Box>
-                  );
-                })}
-              </HStack>
-            </ScrollView>
-          </Box>
-        </Animated.View>
+
+                    {/* Wind (kept content, styled subtle) */}
+                    <Text mt="$2" fontSize="$2xs" color={textLight}>
+                      {wind}
+                    </Text>
+                  </BaseCard>
+                );
+              })}
+            </HStack>
+          </ScrollView>
+        </Box>
 
         {/* Weather Details */}
         {currentWeather && (
-          <Animated.View
-            style={{
-              opacity: detailsAnim.fadeAnim,
-              transform: [{ translateY: detailsAnim.slideAnim }],
-            }}
-          >
-            <Box mx="$4" mt="$6">
-              <Text style={styles.sectionTitle}>Weather Details</Text>
-
-              <Box style={styles.detailsCard}>
-                <HStack justifyContent="space-between" flexWrap="wrap">
-                  <WeatherDetailItem
-                    iconName="navigate-outline"
-                    label="Wind"
-                    value={currentWeather.wind_speed_kmh}
-                    subvalue={currentWeather.wind_direction}
-                  />
-                  <WeatherDetailItem
-                    iconName="rainy-outline"
-                    label="Rainfall"
-                    value={currentWeather.rainfall_mm}
-                  />
-                  <WeatherDetailItem
-                    iconName="speedometer-outline"
-                    label="Pressure"
-                    value={currentWeather.pressure_pa}
-                  />
-                  <WeatherDetailItem
-                    iconName="water-outline"
-                    label="Dewpoint"
-                    value={currentWeather.dewpoint_c}
-                  />
-                </HStack>
-              </Box>
+          <Box mx="$4" mt="$6">
+            <Text style={styles.sectionTitle}>Weather Details</Text>
+            <Box style={styles.detailsCard}>
+              <HStack justifyContent="space-between" flexWrap="wrap">
+                <WeatherDetailItem
+                  iconName="navigate-outline"
+                  label="Wind"
+                  value={currentWeather.wind_speed_kmh}
+                  subvalue={currentWeather.wind_direction}
+                />
+                <WeatherDetailItem
+                  iconName="rainy-outline"
+                  label="Rainfall"
+                  value={currentWeather.rainfall_mm}
+                />
+                <WeatherDetailItem
+                  iconName="speedometer-outline"
+                  label="Pressure"
+                  value={currentWeather.pressure_pa}
+                />
+                <WeatherDetailItem
+                  iconName="water-outline"
+                  label="Dewpoint"
+                  value={currentWeather.dewpoint_c}
+                />
+              </HStack>
             </Box>
-          </Animated.View>
+          </Box>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -584,7 +516,6 @@ const styles = StyleSheet.create({
   heroIcon3D: {
     width: 230,
     height: 230,
-    resizeMode: "contain",
   },
   heroTextWrap: {
     position: "absolute",
@@ -605,11 +536,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   iconContainer: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    elevation: 12,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 10px 18px rgba(0, 0, 0, 0.18)" }
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.18,
+          shadowRadius: 18,
+          elevation: 12,
+        }),
   },
   rainDrop: {
     position: "absolute",
@@ -625,11 +560,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)" }
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 3,
+        }),
   },
   detailItem: {
     width: "48%",
@@ -652,11 +591,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
     minWidth: 70,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 8,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 10px 14px rgba(0, 0, 0, 0.10)" }
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.1,
+          shadowRadius: 14,
+          elevation: 8,
+        }),
     marginVertical: 6,
     marginHorizontal: 2,
   },
