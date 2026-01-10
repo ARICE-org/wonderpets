@@ -1,16 +1,16 @@
 import React from "react";
 import { HStack } from "@gluestack-ui/themed";
 import { SoilMetric } from "../../../Data/soildata";
-import MetricItem from "./metricItem";
+import SoilItem from "./metricItem";
 
 type MetricRowProps = {
   metrics: SoilMetric[];
 };
 
 const MetricRow = ({ metrics }: MetricRowProps) => (
-  <HStack justifyContent="space-between">
+  <HStack flexWrap="wrap" justifyContent="space-between" alignItems="flex-end" width="100%">
     {metrics.map((metric) => (
-      <MetricItem
+      <SoilItem
         key={metric.id}
         label={metric.label}
         value={metric.value}

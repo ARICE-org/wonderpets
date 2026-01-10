@@ -17,6 +17,10 @@ export interface WeeklyForecastData {
   organicMatterPct: number;
   healthScore: number;
   healthCategory: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  nitrogenStatus: 'good' | 'warning' | 'bad';
+  phosphorusStatus: 'good' | 'warning' | 'bad';
+  potassiumStatus: 'good' | 'warning' | 'bad';
+  phStatus: 'good' | 'warning' | 'bad';
   realigned: boolean;
   correctionApplied: string | null;
 }

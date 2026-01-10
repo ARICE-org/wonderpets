@@ -4,6 +4,7 @@
  */
 
 import { POST } from '../client';
+import type { RequestConfig } from '../types';
 
 /**
  * Single reading item for API requests
@@ -104,24 +105,25 @@ export interface SoilDataBulkUploadResponse {
 
 /**
  * Upload aggregated soil data from CSV
- * POST /api/soil-data
  */
-export async function createSoilData(data: SoilDataCreateRequest): Promise<SoilDataResponse> {
-  return POST<SoilDataResponse, SoilDataCreateRequest>('/api/soil-data', data);
+export async function createSoilData(
+  data: SoilDataCreateRequest,
+  config?: RequestConfig
+): Promise<SoilDataResponse> {
+  return POST<SoilDataResponse, SoilDataCreateRequest>('/api/soil-data', data, config);
 }
 
 /**
  * Bulk upload CSV-parsed readings
- * POST /api/soil-data/bulk-upload
- * 
- * This endpoint aggregates the data and chains to soil-forecast/readings
  */
 export async function bulkUploadSoilData(
-  data: SoilDataBulkUploadRequest
+  data: SoilDataBulkUploadRequest,
+  config?: RequestConfig
 ): Promise<SoilDataBulkUploadResponse> {
   return POST<SoilDataBulkUploadResponse, SoilDataBulkUploadRequest>(
     '/api/soil-data/bulk-upload',
-    data
+    data,
+    config
   );
 }
 

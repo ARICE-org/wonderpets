@@ -157,6 +157,10 @@ class WeeklyForecast(BaseModel):
     organic_matter_pct: Optional[float] = Field(None, alias="organicMatterPct")
     health_score: float = Field(..., alias="healthScore")
     health_category: HealthCategory = Field(..., alias="healthCategory")
+    nitrogen_status: Optional[str] = Field(None, alias="nitrogenStatus")
+    phosphorus_status: Optional[str] = Field(None, alias="phosphorusStatus")
+    potassium_status: Optional[str] = Field(None, alias="potassiumStatus")
+    ph_status: Optional[str] = Field(None, alias="phStatus")
     realigned: bool = False
     correction_applied: Optional[CorrectionStrategy] = Field(None, alias="correctionApplied")
 

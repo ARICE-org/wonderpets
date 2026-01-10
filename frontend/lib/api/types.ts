@@ -20,6 +20,16 @@ export interface RequestConfig {
   timeout?: number;
   /** AbortSignal for request cancellation */
   signal?: AbortSignal;
+  /** Toast message to show on success */
+  toastSuccessMessage?: string;
+  /** Toast message to show on error (overrides default message) */
+  toastErrorMessage?: string;
+  /** Toast message to show while requesting */
+  toastUploadingMessage?: string;
+  /** Callback on successful request */
+  onSuccess?: (data: any) => void;
+  /** Callback on failed request */
+  onError?: (error: any) => void;
 }
 
 /**
