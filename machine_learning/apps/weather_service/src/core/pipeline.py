@@ -8,11 +8,11 @@ import os
 from datetime import datetime
 from typing import Optional
 
-from fuxis2s_model.config import settings
+from config import settings
 
 
 async def run_full_pipeline(
-    init_date: Optional[str] = None,
+    init_date: Optional[str] = datetime.utcnow().strftime("%Y%m%d"),
     members: int = 11,
     total_step: int = 42,
     station: str = "Pacol, Naga City",

@@ -12,7 +12,7 @@ from typing import Optional, List, Dict, Any
 import pandas as pd
 import numpy as np
 
-from fuxis2s_model.config import settings
+from config import settings
 
 
 def _utc_now() -> datetime:
@@ -126,7 +126,7 @@ def _df_row_to_doc(
 
 
 async def store_forecast_data(
-    init_date: str,
+    init_date: Optional[str] = None,
     station: str = "Pacol, Naga City",
     members: int = 11,
     apply_bias_correction: bool = False
@@ -148,6 +148,8 @@ async def store_forecast_data(
     def _store():
         from .compare import load_fuxi_output, extract_station_forecast, STATIONS
         import os
+        if init_date is None:
+            raise ValueError("init_date is required")
         # BiasCorrector import
         corrector = None
         if apply_bias_correction:

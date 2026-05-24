@@ -10,7 +10,7 @@ from typing import Optional, List
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 
-from src.config import settings
+from config import settings
 
 router = APIRouter(prefix="/pipeline")
 

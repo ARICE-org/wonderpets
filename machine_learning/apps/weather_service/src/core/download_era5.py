@@ -13,7 +13,7 @@ from typing import Optional, List
 import numpy as np
 import xarray as xr
 
-from fuxis2s_model.config import settings
+from config import settings
 
 
 # Pressure level variables (13 levels each)

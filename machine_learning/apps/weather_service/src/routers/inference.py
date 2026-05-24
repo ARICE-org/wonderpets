@@ -9,7 +9,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 
-from fuxis2s_model.config import settings
+from config import settings
 
 router = APIRouter(prefix="/inference")
 

@@ -5,7 +5,7 @@
 # Port: 8002
 # ==============================================================================
 
-FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04 AS base
+FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 AS base
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
@@ -44,10 +44,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install Python dependencies (includes PyTorch CUDA wheels via extra index)
-RUN pip install --no-cache-dir \
-    --extra-index-url https://download.pytorch.org/whl/cu117 \
-    -r requirements.txt
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Ensure the server runtime is always available even if it is missing from the local requirements file.
 RUN pip install --no-cache-dir "uvicorn[standard]>=0.27.0"

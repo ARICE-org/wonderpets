@@ -6,6 +6,7 @@ Adapted for Docker microservice architecture.
 """
 
 import os
+import importlib
 import time
 from copy import deepcopy
 from typing import Optional
@@ -15,7 +16,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from fuxis2s_model.config import settings
+from config import settings
 from .data_util import make_input, print_dataarray
 
 
@@ -39,7 +40,13 @@ def load_model(model_path: str, device: str = "cuda"):
     ort.InferenceSession
         ONNX Runtime inference session
     """
-    import onnxruntime as ort
+    try:
+        ort = importlib.import_module("onnxruntime")
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "onnxruntime is required to load the forecast model. "
+            "Install it with GPU or CPU support depending on your deployment."
+        ) from exc
     
     ort.set_default_logger_severity(3)
     options = ort.SessionOptions()
@@ -47,20 +54,26 @@ def load_model(model_path: str, device: str = "cuda"):
     options.enable_mem_pattern = False
     options.enable_mem_reuse = False
     
+    def _create_session(session_providers):
+        return ort.InferenceSession(
+            model_path,
+            sess_options=options,
+            providers=session_providers,
+        )
+
     if device == "cuda":
         providers = [('CUDAExecutionProvider', {'arena_extend_strategy': 'kSameAsRequested'})]
+        try:
+            return _create_session(providers)
+        except Exception as exc:
+            print(f"⚠ CUDA provider unavailable, falling back to CPU: {exc}")
+            options.intra_op_num_threads = 24
+            return _create_session(['CPUExecutionProvider'])
     elif device == "cpu":
-        providers = ['CPUExecutionProvider']
         options.intra_op_num_threads = 24
+        return _create_session(['CPUExecutionProvider'])
     else:
         raise ValueError("device must be cpu or cuda!")
-
-    session = ort.InferenceSession(
-        model_path,
-        sess_options=options,
-        providers=providers
-    )
-    return session
 
 
 # =============================================================================
@@ -264,6 +277,9 @@ async def run_inference(
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, _run)
     
+    if init_date is None:
+        raise ValueError("Failed to determine initialization date from input data")
+
     year = init_date[:4]
     output_path = os.path.join(settings.output_dir, year, init_date)
     return output_path

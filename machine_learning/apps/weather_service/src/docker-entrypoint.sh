@@ -55,7 +55,7 @@ EOF
 # ==============================================================================
 check_gpu() {
     echo -e "${CYAN}[GPU] Checking NVIDIA GPU...${NC}"
-    python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}'); print(f'Device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"CPU\"}')" 2>/dev/null || echo "GPU check failed"
+    nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | sed '/^$/d' | head -n 1 | awk '{print "Device: " $0}' || echo "GPU check failed"
 }
 
 # ==============================================================================

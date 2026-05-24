@@ -5,6 +5,7 @@ Port: 8002
 """
 
 import os
+import subprocess
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -13,19 +14,33 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import inference, pipeline, health
 
 
+def _get_gpu_names() -> list[str]:
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=5,
+        )
+        return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    except Exception:
+        return []
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     print("🤖 FuXi-S2S Model Service starting up...")
     print("   Checking GPU availability...")
     try:
-        import torch
-        if torch.cuda.is_available():
-            print(f"   ✓ GPU detected: {torch.cuda.get_device_name(0)}")
+        gpu_names = _get_gpu_names()
+        if gpu_names:
+            print(f"   ✓ GPU detected: {gpu_names[0]}")
         else:
             print("   ⚠ No GPU detected, using CPU")
     except Exception as e:
-        print(f"   ⚠ PyTorch check failed: {e}")
+        print(f"   ⚠ GPU check failed: {e}")
     yield
     print("🤖 FuXi-S2S Model Service shutting down...")
 
