@@ -1,0 +1,116 @@
+# ==============================================================================
+# FuXi-S2S Docker Build Ignore File
+# ==============================================================================
+# Exclude files that should not be copied to the Docker build context
+# ==============================================================================
+
+# Virtual environments
+venv/
+venv_fuxi/
+.venv/
+env/
+.env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker files (avoid recursive copying)
+Dockerfile*
+docker-compose*.yml
+.docker/
+
+# Documentation (not needed in container)
+*.md
+!README.md
+docs/
+
+# Test files
+test/
+tests/
+*_test.py
+test_*.py
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Jupyter notebooks and checkpoints
+*.ipynb
+.ipynb_checkpoints/
+
+# Local configuration files
+*.local.md
+.cdsapirc
+.env
+.env.*
+!.env.example
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Large runtime files that should be mounted as volumes
+# These are intentionally excluded to keep images small.
+data/
+output/
+model/
+
+# Common large scientific/model artifacts
+**/*.nc
+**/*.onnx
+
+# Comparison results
+compare/result/
+compare/result_improved/
+compare/plots/
+
+# MongoDB data
+mongo-data/
+mongodb_data/
+
+# PowerShell scripts (Linux container uses bash)
+*.ps1
+
+# Windows batch files
+*.bat
+*.cmd
+
+# Requirements file alternatives
+requirements-*.txt
+!requirements.txt

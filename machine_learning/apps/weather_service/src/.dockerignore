@@ -1,0 +1,27 @@
+# Docker ignore file for fuxis2s_model
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.git
+.gitignore
+.env
+.venv
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+.DS_Store
+Thumbs.db
+*.md
+!README.md
+tests/
+docs/

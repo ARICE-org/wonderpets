@@ -8,6 +8,9 @@ services:
       postgre:
         condition: service_started
         restart: true
+      mongodb:
+        condition: service_healthy
+        restart: true
     ports:
       - "8000:8000"
     volumes:
@@ -24,14 +27,18 @@ services:
       - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgre:5432/${POSTGRES_DB}
       - POSTGRES_HOST=postgre
       - POSTGRES_PORT=5432
+      # MongoDB connection string using Docker service DNS and internal port
+      - MONGO_DB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}
+      - MONGO_DB=${MONGO_DB}
       # NOTE: Inside Docker networks, use service DNS, not localhost.
       - SOIL_ML_URL=http://ml-soil:8001
+      # - WEATHER_ML_URL=http://ml-weather:8001
+      - WEATHER_ML_URL=http://ml-weather:8001
     env_file:
       - ./.env
 
   # frontend:
   #   build:
-  #     context: ./frontend
   #     dockerfile: Dockerfile
   #   ports:
   #     - "8081:8081"
@@ -85,22 +92,48 @@ services:
     command: uvicorn apps.soil_service.main:app --host 0.0.0.0 --port 8001
 
   # ML Weather Service (isolated) - DDD Architecture
-  # ml-weather:
-  #   build:
-  #     context: ./machine_learning
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "8002:8002"
-  #   volumes:
-  #     - ./machine_learning/apps:/code/apps
-  #     - ./machine_learning/trained_models:/code/trained_models
-  #   environment:
-  #     - MODEL_PATH=/code/trained_models
-  #     - PYTHONPATH=/code
-  #   env_file:
-  #     - ./.env
-  #   command: uvicorn apps.weather_service.main:app --host 0.0.0.0 --port 8002
+  ml-weather:
+    build:
+      context: ./machine_learning/apps/weather_service/src
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      - MONGO_DB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}
+      - MONGO_DB=${MONGO_DB}
+      - MODEL_PATH=/app/model/fuxi_s2s.onnx
+      - DATA_DIR=/app/data
+      - OUTPUT_DIR=/app/output
+      - DEVICE=cuda
+      - CROP_LAT=13.58
+      - CROP_LON=123.28
+      - CROP_RADIUS=10.0
+      - CDS_API_URL=${CDS_API_URL}
+      - CDS_API_KEY=${CDS_API_KEY}
+    volumes:
+      # Model file
+      - ./machine_learning/apps/weather_service/model:/app/model:ro
+      # Data directories
+      - ./machine_learning/apps/weather_service/data:/app/data
+      # Output directory
+      - ./machine_learning/apps/weather_service/output:/app/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # ML Recommendation Service (isolated) - DDD Architecture
   # ml-recommendation:
@@ -120,6 +153,41 @@ services:
   #     - ./.env
   #   command: uvicorn apps.recommendation_service.main:app --host 0.0.0.0 --port 8003
 
+  # Weather Storage Service (MongoDB)
+  mongodb:
+    image: mongodb/mongodb-community-server:7.0-ubi8
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB}
+    volumes:
+      - mongodb_data:/data/db
+      - ./machine_learning/apps/weather_service/docker/mongo-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    # Mongo dashboard for browsing the database in Docker
+  mongo-express:
+    image: mongo-express:1.0.2
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB}?authSource=admin
+      - ME_CONFIG_BASICAUTH=false
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
 volumes:
   postgre_data:
   pgadmin_data:
+  mongodb_data:

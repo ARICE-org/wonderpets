@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: int
     CORS_ORIGINS: str
+    MONGO_DB: str = "arice"
+    MONGO_DB_URI: Optional[str] = None
+    MONGO_URI: Optional[str] = None
     
     # Server Configuration
     PORT: int = 8000  # Backend server port for internal API calls
@@ -39,6 +42,14 @@ class Settings(BaseSettings):
     class Config:
         env_file = str(ENV_FILE)
         extra = "ignore"  # ignore extra env vars
+
+    @property
+    def mongo_db(self) -> str:
+        return self.MONGO_DB
+
+    @property
+    def mongo_uri(self) -> str:
+        return self.MONGO_DB_URI or self.MONGO_URI or "mongodb://mongodb:27017"
 
 
 @lru_cache()

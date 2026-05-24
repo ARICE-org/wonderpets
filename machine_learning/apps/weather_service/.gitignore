@@ -1,0 +1,14 @@
+.venv_fuxi
+.train_fuxi_venv
+.venv
+__pycache__
+comparison_results.csv
+output/*
+data/*
+model/*
+*.local.*
+compare/*
+.env
+*.cdsapirc
+*.pkl
+bias_correction_params.pkl
